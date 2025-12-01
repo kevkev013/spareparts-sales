@@ -1,0 +1,553 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// MASTER DATA
+// ============================================
+
+model Item {
+  id                String            @id @default(uuid())
+  itemCode          String            @unique @map("item_code") @db.VarChar(20)
+  itemName          String            @map("item_name") @db.VarChar(255)
+  category          String            @db.VarChar(100)
+  brand             String            @db.VarChar(100)
+  baseUnit          String            @map("base_unit") @db.VarChar(20)
+  basePrice         Decimal           @default(0) @map("base_price") @db.Decimal(15, 2)
+  sellingPrice      Decimal           @default(0) @map("selling_price") @db.Decimal(15, 2)
+  minStock          Int               @default(0) @map("min_stock")
+  description       String?           @db.Text
+  compatibleMotors  Json?             @map("compatible_motors")
+  isTaxable         Boolean           @default(true) @map("is_taxable")
+  isActive          Boolean           @default(true) @map("is_active")
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+
+  // Relations
+  unitConversions      UnitConversion[]
+  unitPrices           UnitPrice[]
+  batches              Batch[]
+  stocks               Stock[]
+  priceMovements       PriceMovement[]
+  salesQuotationItems  SalesQuotationItem[]
+  salesOrderItems      SalesOrderItem[]
+  deliveryOrderItems   DeliveryOrderItem[]
+  invoiceItems         InvoiceItem[]
+
+  @@map("items")
+  @@index([itemCode])
+  @@index([category])
+  @@index([brand])
+}
+
+model UnitConversion {
+  id                Int               @id @default(autoincrement())
+  itemCode          String            @map("item_code") @db.VarChar(20)
+  fromUnit          String            @map("from_unit") @db.VarChar(20)
+  toUnit            String            @map("to_unit") @db.VarChar(20)
+  conversionFactor  Decimal           @map("conversion_factor") @db.Decimal(10, 4)
+  isActive          Boolean           @default(true) @map("is_active")
+  createdAt         DateTime          @default(now()) @map("created_at")
+
+  // Relations
+  item              Item              @relation(fields: [itemCode], references: [itemCode], onDelete: Cascade)
+
+  @@map("unit_conversions")
+  @@index([itemCode])
+}
+
+model UnitPrice {
+  id                Int               @id @default(autoincrement())
+  itemCode          String            @map("item_code") @db.VarChar(20)
+  unit              String            @db.VarChar(20)
+  buyingPrice       Decimal           @default(0) @map("buying_price") @db.Decimal(15, 2)
+  sellingPrice      Decimal           @default(0) @map("selling_price") @db.Decimal(15, 2)
+  minQty            Int               @default(1) @map("min_qty")
+  isActive          Boolean           @default(true) @map("is_active")
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+
+  // Relations
+  item              Item              @relation(fields: [itemCode], references: [itemCode], onDelete: Cascade)
+
+  @@map("unit_prices")
+  @@index([itemCode])
+}
+
+model Customer {
+  id                String            @id @default(uuid())
+  customerCode      String            @unique @map("customer_code") @db.VarChar(20)
+  customerName      String            @map("customer_name") @db.VarChar(255)
+  customerType      CustomerType      @map("customer_type")
+  phone             String?           @db.VarChar(20)
+  email             String?           @db.VarChar(100)
+  address           String?           @db.Text
+  city              String?           @db.VarChar(100)
+  npwp              String?           @db.VarChar(30)
+  discountRate      Decimal           @default(0) @map("discount_rate") @db.Decimal(5, 2)
+  creditLimit       Decimal           @default(0) @map("credit_limit") @db.Decimal(15, 2)
+  creditTerm        Int               @default(0) @map("credit_term")
+  isTaxable         Boolean           @default(true) @map("is_taxable")
+  isActive          Boolean           @default(true) @map("is_active")
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+
+  // Relations
+  salesQuotations   SalesQuotation[]
+  salesOrders       SalesOrder[]
+  deliveryOrders    DeliveryOrder[]
+  shipments         Shipment[]
+  invoices          Invoice[]
+
+  @@map("customers")
+  @@index([customerCode])
+}
+
+model Location {
+  id                String            @id @default(uuid())
+  locationCode      String            @unique @map("location_code") @db.VarChar(20)
+  locationName      String            @map("location_name") @db.VarChar(255)
+  warehouse         String            @db.VarChar(100)
+  zone              String?           @db.VarChar(50)
+  description       String?           @db.Text
+  isActive          Boolean           @default(true) @map("is_active")
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+
+  // Relations
+  stocks               Stock[]
+  deliveryOrderItems   DeliveryOrderItem[]
+
+  @@map("locations")
+  @@index([locationCode])
+}
+
+model Batch {
+  id                String            @id @default(uuid())
+  batchNumber       String            @unique @map("batch_number") @db.VarChar(30)
+  itemCode          String            @map("item_code") @db.VarChar(20)
+  purchaseDate      DateTime          @map("purchase_date")
+  purchasePrice     Decimal           @map("purchase_price") @db.Decimal(15, 2)
+  supplier          String            @db.VarChar(255)
+  expiryDate        DateTime?         @map("expiry_date")
+  characteristics   Json?
+  notes             String?           @db.Text
+  createdAt         DateTime          @default(now()) @map("created_at")
+
+  // Relations
+  item                 Item                  @relation(fields: [itemCode], references: [itemCode])
+  stocks               Stock[]
+  deliveryOrderItems   DeliveryOrderItem[]
+
+  @@map("batches")
+  @@index([itemCode])
+  @@index([batchNumber])
+}
+
+model Stock {
+  id                String            @id @default(uuid())
+  itemCode          String            @map("item_code") @db.VarChar(20)
+  locationCode      String            @map("location_code") @db.VarChar(20)
+  batchNumber       String            @map("batch_number") @db.VarChar(30)
+  quantity          Decimal           @default(0) @db.Decimal(15, 4)
+  reservedQty       Decimal           @default(0) @map("reserved_qty") @db.Decimal(15, 4)
+  availableQty      Decimal           @default(0) @map("available_qty") @db.Decimal(15, 4)
+  lastUpdated       DateTime          @default(now()) @map("last_updated") @updatedAt
+
+  // Relations
+  item              Item              @relation(fields: [itemCode], references: [itemCode])
+  location          Location          @relation(fields: [locationCode], references: [locationCode])
+  batch             Batch             @relation(fields: [batchNumber], references: [batchNumber])
+
+  @@map("stocks")
+  @@unique([itemCode, locationCode, batchNumber])
+  @@index([itemCode])
+  @@index([locationCode])
+  @@index([batchNumber])
+}
+
+// ============================================
+// SALES FLOW
+// ============================================
+
+model SalesQuotation {
+  id                String                 @id @default(uuid())
+  sqNumber          String                 @unique @map("sq_number") @db.VarChar(30)
+  sqDate            DateTime               @map("sq_date")
+  customerCode      String                 @map("customer_code") @db.VarChar(20)
+  validUntil        DateTime               @map("valid_until")
+  subtotal          Decimal                @default(0) @db.Decimal(15, 2)
+  discountAmount    Decimal                @default(0) @map("discount_amount") @db.Decimal(15, 2)
+  taxAmount         Decimal                @default(0) @map("tax_amount") @db.Decimal(15, 2)
+  grandTotal        Decimal                @default(0) @map("grand_total") @db.Decimal(15, 2)
+  notes             String?                @db.Text
+  status            QuotationStatus        @default(draft)
+  convertedToSo     Boolean                @default(false) @map("converted_to_so")
+  soNumber          String?                @map("so_number") @db.VarChar(30)
+  createdAt         DateTime               @default(now()) @map("created_at")
+  updatedAt         DateTime               @updatedAt @map("updated_at")
+
+  // Relations
+  customer          Customer               @relation(fields: [customerCode], references: [customerCode])
+  items             SalesQuotationItem[]
+  salesOrders       SalesOrder[]
+
+  @@map("sales_quotations")
+  @@index([sqNumber])
+  @@index([customerCode])
+  @@index([sqDate])
+  @@index([status])
+}
+
+model SalesQuotationItem {
+  id                String                 @id @default(uuid())
+  sqId              String                 @map("sq_id")
+  itemCode          String                 @map("item_code") @db.VarChar(20)
+  quantity          Decimal                @db.Decimal(15, 4)
+  unit              String                 @db.VarChar(20)
+  unitPrice         Decimal                @map("unit_price") @db.Decimal(15, 2)
+  discountPercent   Decimal                @default(0) @map("discount_percent") @db.Decimal(5, 2)
+  discountAmount    Decimal                @default(0) @map("discount_amount") @db.Decimal(15, 2)
+  subtotal          Decimal                @default(0) @db.Decimal(15, 2)
+  notes             String?                @db.Text
+
+  // Relations
+  salesQuotation    SalesQuotation         @relation(fields: [sqId], references: [id], onDelete: Cascade)
+  item              Item                   @relation(fields: [itemCode], references: [itemCode])
+
+  @@map("sales_quotation_items")
+  @@index([sqId])
+  @@index([itemCode])
+}
+
+model SalesOrder {
+  id                String                 @id @default(uuid())
+  soNumber          String                 @unique @map("so_number") @db.VarChar(30)
+  soDate            DateTime               @map("so_date")
+  customerCode      String                 @map("customer_code") @db.VarChar(20)
+  sqId              String?                @map("sq_id")
+  sqNumber          String?                @map("sq_number") @db.VarChar(30)
+  deliveryAddress   String?                @map("delivery_address") @db.Text
+  deliveryDate      DateTime?              @map("delivery_date")
+  subtotal          Decimal                @default(0) @db.Decimal(15, 2)
+  discountAmount    Decimal                @default(0) @map("discount_amount") @db.Decimal(15, 2)
+  taxAmount         Decimal                @default(0) @map("tax_amount") @db.Decimal(15, 2)
+  grandTotal        Decimal                @default(0) @map("grand_total") @db.Decimal(15, 2)
+  notes             String?                @db.Text
+  status            OrderStatus            @default(confirmed)
+  createdAt         DateTime               @default(now()) @map("created_at")
+  updatedAt         DateTime               @updatedAt @map("updated_at")
+
+  // Relations
+  customer          Customer               @relation(fields: [customerCode], references: [customerCode])
+  salesQuotation    SalesQuotation?        @relation(fields: [sqId], references: [id])
+  items             SalesOrderItem[]
+  deliveryOrders    DeliveryOrder[]
+  shipments         Shipment[]
+  invoices          Invoice[]
+
+  @@map("sales_orders")
+  @@index([soNumber])
+  @@index([customerCode])
+  @@index([soDate])
+  @@index([status])
+  @@index([sqId])
+}
+
+model SalesOrderItem {
+  id                String                 @id @default(uuid())
+  soId              String                 @map("so_id")
+  itemCode          String                 @map("item_code") @db.VarChar(20)
+  quantity          Decimal                @db.Decimal(15, 4)
+  reservedQty       Decimal                @default(0) @map("reserved_qty") @db.Decimal(15, 4)
+  fulfilledQty      Decimal                @default(0) @map("fulfilled_qty") @db.Decimal(15, 4)
+  unit              String                 @db.VarChar(20)
+  unitPrice         Decimal                @map("unit_price") @db.Decimal(15, 2)
+  discountPercent   Decimal                @default(0) @map("discount_percent") @db.Decimal(5, 2)
+  discountAmount    Decimal                @default(0) @map("discount_amount") @db.Decimal(15, 2)
+  subtotal          Decimal                @default(0) @db.Decimal(15, 2)
+  notes             String?                @db.Text
+
+  // Relations
+  salesOrder           SalesOrder            @relation(fields: [soId], references: [id], onDelete: Cascade)
+  item                 Item                  @relation(fields: [itemCode], references: [itemCode])
+  deliveryOrderItems   DeliveryOrderItem[]
+
+  @@map("sales_order_items")
+  @@index([soId])
+  @@index([itemCode])
+}
+
+model DeliveryOrder {
+  id                String                 @id @default(uuid())
+  doNumber          String                 @unique @map("do_number") @db.VarChar(30)
+  doDate            DateTime               @map("do_date")
+  soId              String                 @map("so_id")
+  soNumber          String                 @map("so_number") @db.VarChar(30)
+  customerCode      String                 @map("customer_code") @db.VarChar(20)
+  pickerName        String?                @map("picker_name") @db.VarChar(100)
+  notes             String?                @db.Text
+  status            DeliveryStatus         @default(picking)
+  pickedAt          DateTime?              @map("picked_at")
+  createdAt         DateTime               @default(now()) @map("created_at")
+  updatedAt         DateTime               @updatedAt @map("updated_at")
+
+  // Relations
+  salesOrder        SalesOrder             @relation(fields: [soId], references: [id])
+  customer          Customer               @relation(fields: [customerCode], references: [customerCode])
+  items             DeliveryOrderItem[]
+  shipments         Shipment[]
+
+  @@map("delivery_orders")
+  @@index([doNumber])
+  @@index([soId])
+  @@index([customerCode])
+  @@index([doDate])
+  @@index([status])
+}
+
+model DeliveryOrderItem {
+  id                String                 @id @default(uuid())
+  doId              String                 @map("do_id")
+  soItemId          String                 @map("so_item_id")
+  itemCode          String                 @map("item_code") @db.VarChar(20)
+  orderedQty        Decimal                @map("ordered_qty") @db.Decimal(15, 4)
+  pickedQty         Decimal                @default(0) @map("picked_qty") @db.Decimal(15, 4)
+  unit              String                 @db.VarChar(20)
+  batchNumber       String                 @map("batch_number") @db.VarChar(30)
+  locationCode      String                 @map("location_code") @db.VarChar(20)
+  notes             String?                @db.Text
+
+  // Relations
+  deliveryOrder     DeliveryOrder          @relation(fields: [doId], references: [id], onDelete: Cascade)
+  salesOrderItem    SalesOrderItem         @relation(fields: [soItemId], references: [id])
+  item              Item                   @relation(fields: [itemCode], references: [itemCode])
+  batch             Batch                  @relation(fields: [batchNumber], references: [batchNumber])
+  location          Location               @relation(fields: [locationCode], references: [locationCode])
+
+  @@map("delivery_order_items")
+  @@index([doId])
+  @@index([soItemId])
+  @@index([itemCode])
+  @@index([batchNumber])
+  @@index([locationCode])
+}
+
+model Shipment {
+  id                String                 @id @default(uuid())
+  sjNumber          String                 @unique @map("sj_number") @db.VarChar(30)
+  sjDate            DateTime               @map("sj_date")
+  doId              String                 @map("do_id")
+  doNumber          String                 @map("do_number") @db.VarChar(30)
+  soId              String                 @map("so_id")
+  soNumber          String                 @map("so_number") @db.VarChar(30)
+  customerCode      String                 @map("customer_code") @db.VarChar(20)
+  driverName        String?                @map("driver_name") @db.VarChar(100)
+  vehicleNumber     String?                @map("vehicle_number") @db.VarChar(20)
+  deliveryAddress   String                 @map("delivery_address") @db.Text
+  recipient         String?                @db.VarChar(100)
+  notes             String?                @db.Text
+  status            ShipmentStatus         @default(in_transit)
+  deliveredAt       DateTime?              @map("delivered_at")
+  createdAt         DateTime               @default(now()) @map("created_at")
+  updatedAt         DateTime               @updatedAt @map("updated_at")
+
+  // Relations
+  deliveryOrder     DeliveryOrder          @relation(fields: [doId], references: [id])
+  salesOrder        SalesOrder             @relation(fields: [soId], references: [id])
+  customer          Customer               @relation(fields: [customerCode], references: [customerCode])
+
+  @@map("shipments")
+  @@index([sjNumber])
+  @@index([doId])
+  @@index([soId])
+  @@index([customerCode])
+  @@index([sjDate])
+  @@index([status])
+}
+
+model Invoice {
+  id                String                 @id @default(uuid())
+  invNumber         String                 @unique @map("inv_number") @db.VarChar(30)
+  invDate           DateTime               @map("inv_date")
+  dueDate           DateTime               @map("due_date")
+  soId              String                 @map("so_id")
+  soNumber          String                 @map("so_number") @db.VarChar(30)
+  customerCode      String                 @map("customer_code") @db.VarChar(20)
+  subtotal          Decimal                @default(0) @db.Decimal(15, 2)
+  discountAmount    Decimal                @default(0) @map("discount_amount") @db.Decimal(15, 2)
+  taxAmount         Decimal                @default(0) @map("tax_amount") @db.Decimal(15, 2)
+  grandTotal        Decimal                @default(0) @map("grand_total") @db.Decimal(15, 2)
+  hpp               Decimal                @default(0) @db.Decimal(15, 2)
+  profit            Decimal                @default(0) @db.Decimal(15, 2)
+  profitMargin      Decimal                @default(0) @map("profit_margin") @db.Decimal(5, 2)
+  paidAmount        Decimal                @default(0) @map("paid_amount") @db.Decimal(15, 2)
+  remainingAmount   Decimal                @default(0) @map("remaining_amount") @db.Decimal(15, 2)
+  notes             String?                @db.Text
+  status            InvoiceStatus          @default(unpaid)
+  createdAt         DateTime               @default(now()) @map("created_at")
+  updatedAt         DateTime               @updatedAt @map("updated_at")
+
+  // Relations
+  salesOrder        SalesOrder             @relation(fields: [soId], references: [id])
+  customer          Customer               @relation(fields: [customerCode], references: [customerCode])
+  items             InvoiceItem[]
+
+  @@map("invoices")
+  @@index([invNumber])
+  @@index([soId])
+  @@index([customerCode])
+  @@index([invDate])
+  @@index([status])
+}
+
+model InvoiceItem {
+  id                String                 @id @default(uuid())
+  invId             String                 @map("inv_id")
+  itemCode          String                 @map("item_code") @db.VarChar(20)
+  quantity          Decimal                @db.Decimal(15, 4)
+  unit              String                 @db.VarChar(20)
+  unitPrice         Decimal                @map("unit_price") @db.Decimal(15, 2)
+  discountPercent   Decimal                @default(0) @map("discount_percent") @db.Decimal(5, 2)
+  discountAmount    Decimal                @default(0) @map("discount_amount") @db.Decimal(15, 2)
+  subtotal          Decimal                @default(0) @db.Decimal(15, 2)
+  hpp               Decimal                @default(0) @db.Decimal(15, 2)
+  profit            Decimal                @default(0) @db.Decimal(15, 2)
+
+  // Relations
+  invoice           Invoice                @relation(fields: [invId], references: [id], onDelete: Cascade)
+  item              Item                   @relation(fields: [itemCode], references: [itemCode])
+
+  @@map("invoice_items")
+  @@index([invId])
+  @@index([itemCode])
+}
+
+// ============================================
+// TAX CONFIGURATION
+// ============================================
+
+model TaxMaster {
+  id                String            @id @default(uuid())
+  taxCode           String            @unique @map("tax_code") @db.VarChar(20)
+  taxName           String            @map("tax_name") @db.VarChar(100)
+  taxRate           Decimal           @map("tax_rate") @db.Decimal(5, 2)
+  taxType           TaxType           @map("tax_type")
+  isDefault         Boolean           @default(false) @map("is_default")
+  effectiveFrom     DateTime          @map("effective_from")
+  effectiveTo       DateTime?         @map("effective_to")
+  isActive          Boolean           @default(true) @map("is_active")
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+
+  // Relations
+  history           TaxHistory[]
+
+  @@map("tax_master")
+  @@index([taxCode])
+}
+
+model TaxHistory {
+  id                Int               @id @default(autoincrement())
+  taxCode           String            @map("tax_code") @db.VarChar(20)
+  oldRate           Decimal           @map("old_rate") @db.Decimal(5, 2)
+  newRate           Decimal           @map("new_rate") @db.Decimal(5, 2)
+  changedBy         String            @map("changed_by") @db.VarChar(100)
+  changedAt         DateTime          @default(now()) @map("changed_at")
+  reason            String?           @db.Text
+
+  // Relations
+  tax               TaxMaster         @relation(fields: [taxCode], references: [taxCode])
+
+  @@map("tax_history")
+  @@index([taxCode])
+}
+
+// ============================================
+// PRICE MANAGEMENT
+// ============================================
+
+model PriceMovement {
+  id                Int               @id @default(autoincrement())
+  itemCode          String            @map("item_code") @db.VarChar(20)
+  unit              String            @db.VarChar(20)
+  priceType         PriceType         @map("price_type")
+  oldPrice          Decimal           @map("old_price") @db.Decimal(15, 2)
+  newPrice          Decimal           @map("new_price") @db.Decimal(15, 2)
+  changePercentage  Decimal           @map("change_percentage") @db.Decimal(7, 2)
+  reason            String?           @db.Text
+  changedBy         String            @map("changed_by") @db.VarChar(100)
+  changedAt         DateTime          @default(now()) @map("changed_at")
+
+  // Relations
+  item              Item              @relation(fields: [itemCode], references: [itemCode])
+
+  @@map("price_movements")
+  @@index([itemCode])
+  @@index([changedAt])
+}
+
+// ============================================
+// ENUMS
+// ============================================
+
+enum CustomerType {
+  retail
+  wholesale
+  bengkel
+}
+
+enum TaxType {
+  inclusive
+  exclusive
+}
+
+enum PriceType {
+  buying
+  selling
+}
+
+enum QuotationStatus {
+  draft
+  sent
+  accepted
+  rejected
+  expired
+  converted
+}
+
+enum OrderStatus {
+  confirmed
+  processing
+  partial_fulfilled
+  fulfilled
+  cancelled
+}
+
+enum DeliveryStatus {
+  picking
+  picked
+  shipped
+}
+
+enum ShipmentStatus {
+  in_transit
+  delivered
+  cancelled
+}
+
+enum InvoiceStatus {
+  unpaid
+  partial_paid
+  paid
+  overdue
+  cancelled
+}
