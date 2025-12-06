@@ -138,14 +138,14 @@ export function LocationForm({ location, mode }: LocationFormProps) {
           <div>
             <Label htmlFor="zone">Zona</Label>
             <Select
-              value={watch('zone') || ''}
-              onValueChange={(value) => setValue('zone', value)}
+              value={watch('zone') || 'unassigned'}
+              onValueChange={(value) => setValue('zone', value === 'unassigned' ? '' : value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Pilih zona (opsional)" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tidak ada zona</SelectItem>
+                <SelectItem value="unassigned">Tidak ada zona</SelectItem>
                 {ZONE_OPTIONS.map((zone) => (
                   <SelectItem key={zone.value} value={zone.value}>
                     {zone.label}
