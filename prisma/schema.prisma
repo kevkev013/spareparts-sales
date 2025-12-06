@@ -41,6 +41,7 @@ model Item {
   salesOrderItems      SalesOrderItem[]
   deliveryOrderItems   DeliveryOrderItem[]
   invoiceItems         InvoiceItem[]
+  returnItems          ReturnItem[]
 
   @@map("items")
   @@index([itemCode])
@@ -106,6 +107,8 @@ model Customer {
   deliveryOrders    DeliveryOrder[]
   shipments         Shipment[]
   invoices          Invoice[]
+  payments          Payment[]
+  returns           Return[]
 
   @@map("customers")
   @@index([customerCode])
@@ -253,6 +256,7 @@ model SalesOrder {
   deliveryOrders    DeliveryOrder[]
   shipments         Shipment[]
   invoices          Invoice[]
+  returns           Return[]
 
   @@map("sales_orders")
   @@index([soNumber])
@@ -400,6 +404,7 @@ model Invoice {
   salesOrder        SalesOrder             @relation(fields: [soId], references: [id])
   customer          Customer               @relation(fields: [customerCode], references: [customerCode])
   items             InvoiceItem[]
+  payments          Payment[]
 
   @@map("invoices")
   @@index([invNumber])
@@ -550,4 +555,90 @@ enum InvoiceStatus {
   paid
   overdue
   cancelled
+}
+
+// ============================================
+// PAYMENTS & RETURNS
+// ============================================
+
+model Payment {
+  id              String        @id @default(uuid())
+  paymentNumber   String        @unique @map("payment_number") @db.VarChar(30)
+  paymentDate     DateTime      @map("payment_date")
+  invoiceId       String        @map("invoice_id")
+  invoiceNumber   String        @map("invoice_number") @db.VarChar(30)
+  customerCode    String        @map("customer_code") @db.VarChar(20)
+  amount          Decimal       @db.Decimal(15, 2)
+  paymentMethod   PaymentMethod @map("payment_method")
+  referenceNumber String?       @map("reference_number") @db.VarChar(50)
+  notes           String?       @db.Text
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  invoice         Invoice       @relation(fields: [invoiceId], references: [id])
+  customer        Customer      @relation(fields: [customerCode], references: [customerCode])
+
+  @@map("payments")
+  @@index([paymentNumber])
+  @@index([invoiceId])
+  @@index([customerCode])
+  @@index([paymentDate])
+}
+
+model Return {
+  id              String        @id @default(uuid())
+  returnNumber    String        @unique @map("return_number") @db.VarChar(30)
+  returnDate      DateTime      @map("return_date")
+  soId            String?       @map("so_id")
+  soNumber        String?       @map("so_number") @db.VarChar(30)
+  customerCode    String        @map("customer_code") @db.VarChar(20)
+  status          ReturnStatus  @default(pending)
+  reason          String?       @db.Text
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  customer        Customer      @relation(fields: [customerCode], references: [customerCode])
+  salesOrder      SalesOrder?   @relation(fields: [soId], references: [id])
+  items           ReturnItem[]
+
+  @@map("returns")
+  @@index([returnNumber])
+  @@index([customerCode])
+  @@index([returnDate])
+}
+
+model ReturnItem {
+  id              String        @id @default(uuid())
+  returnId        String        @map("return_id")
+  itemCode        String        @map("item_code") @db.VarChar(20)
+  quantity        Decimal       @db.Decimal(15, 4)
+  unit            String        @db.VarChar(20)
+  condition       String?       @db.VarChar(50)
+  notes           String?       @db.Text
+
+  // Relations
+  return          Return        @relation(fields: [returnId], references: [id], onDelete: Cascade)
+  item            Item          @relation(fields: [itemCode], references: [itemCode])
+
+  @@map("return_items")
+  @@index([returnId])
+  @@index([itemCode])
+}
+
+enum PaymentMethod {
+  cash
+  transfer
+  check
+  giro
+  credit_card
+  other
+}
+
+enum ReturnStatus {
+  pending
+  approved
+  rejected
+  completed
 }
