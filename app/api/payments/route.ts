@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireApiPermission } from '@/lib/auth-helpers'
 import { getPayments, createPayment } from '@/services/payment.service'
 import type { PaymentFilter } from '@/services/payment.service'
 
@@ -7,6 +8,9 @@ import type { PaymentFilter } from '@/services/payment.service'
  */
 export async function GET(request: NextRequest) {
     try {
+        const { error } = await requireApiPermission('payments.view')
+        if (error) return error
+
         const { searchParams } = new URL(request.url)
 
         const filter: PaymentFilter = {
@@ -37,6 +41,9 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
     try {
+        const { error } = await requireApiPermission('payments.create')
+        if (error) return error
+
         const body = await request.json()
 
         // Parse date strings to Date objects

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Eye, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { PermissionGate } from '@/components/permission-gate'
 import { Badge } from '@/components/ui/badge'
 import {
     Table,
@@ -47,12 +48,14 @@ export default async function ReturnsPage({ searchParams }: PageProps) {
                     <h1 className="text-3xl font-bold mb-2">Returns</h1>
                     <p className="text-gray-600">Kelola retur barang dari customer</p>
                 </div>
-                <Link href="/returns/create">
-                    <Button>
-                        <Plus className="h-4 w-4 mr-2" />
-                        Buat Retur
-                    </Button>
-                </Link>
+                <PermissionGate permission="returns.create">
+                    <Link href="/returns/create">
+                        <Button>
+                            <Plus className="h-4 w-4 mr-2" />
+                            Buat Retur
+                        </Button>
+                    </Link>
+                </PermissionGate>
             </div>
 
             {/* Table */}

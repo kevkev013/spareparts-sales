@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getBatchById, updateBatch, deleteBatch } from '@/services/batch.service'
 import { batchSchema } from '@/validations/batch'
+import { requireApiPermission } from '@/lib/auth-helpers'
 
 // GET /api/batches/[id] - Get batch by ID
 export async function GET(
@@ -8,6 +9,9 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    const { error } = await requireApiPermission('batches.view')
+    if (error) return error
+
     const batch = await getBatchById(params.id)
 
     if (!batch) {
@@ -33,6 +37,9 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
+    const { error } = await requireApiPermission('batches.edit')
+    if (error) return error
+
     const body = await request.json()
 
     // Validate input
@@ -65,6 +72,9 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
+    const { error } = await requireApiPermission('batches.delete')
+    if (error) return error
+
     await deleteBatch(params.id)
 
     return NextResponse.json({ message: 'Batch berhasil dihapus' })

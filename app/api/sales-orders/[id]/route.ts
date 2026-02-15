@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireApiPermission } from '@/lib/auth-helpers'
 import {
   getSalesOrderById,
   updateSalesOrder,
@@ -12,6 +13,9 @@ import { salesOrderSchema } from '@/validations/sales-order'
  */
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
+    const { error } = await requireApiPermission('orders.view')
+    if (error) return error
+
     const order = await getSalesOrderById(params.id)
 
     if (!order) {
@@ -31,6 +35,9 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
  */
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
+    const { error } = await requireApiPermission('orders.edit')
+    if (error) return error
+
     const body = await request.json()
 
     // Validate input
@@ -60,6 +67,9 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
  */
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
+    const { error } = await requireApiPermission('orders.delete')
+    if (error) return error
+
     await cancelSalesOrder(params.id)
 
     return NextResponse.json({ message: 'Sales order cancelled successfully' })

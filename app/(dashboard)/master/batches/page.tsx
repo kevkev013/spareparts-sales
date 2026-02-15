@@ -16,8 +16,10 @@ import {
 import { formatCurrency, formatDate } from '@/lib/utils'
 import type { BatchesResponse } from '@/types/batch'
 import { Plus, Search, Edit, Trash2, Eye, Package2 } from 'lucide-react'
+import { usePermissions } from '@/hooks/use-permissions'
 
 export default function BatchesPage() {
+  const { can } = usePermissions()
   const [data, setData] = useState<BatchesResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -92,12 +94,14 @@ export default function BatchesPage() {
             className="pl-10"
           />
         </div>
-        <Link href="/master/batches/create">
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Tambah Batch
-          </Button>
-        </Link>
+        {can('batches.create') && (
+          <Link href="/master/batches/create">
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Tambah Batch
+            </Button>
+          </Link>
+        )}
       </div>
 
       {/* Table */}
@@ -169,18 +173,22 @@ export default function BatchesPage() {
                             <Eye className="h-4 w-4" />
                           </Button>
                         </Link>
-                        <Link href={`/master/batches/${batch.id}/edit`}>
-                          <Button variant="ghost" size="sm">
-                            <Edit className="h-4 w-4" />
+                        {can('batches.edit') && (
+                          <Link href={`/master/batches/${batch.id}/edit`}>
+                            <Button variant="ghost" size="sm">
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </Link>
+                        )}
+                        {can('batches.delete') && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDelete(batch.id, batch.batchNumber)}
+                          >
+                            <Trash2 className="h-4 w-4 text-red-600" />
                           </Button>
-                        </Link>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDelete(batch.id, batch.batchNumber)}
-                        >
-                          <Trash2 className="h-4 w-4 text-red-600" />
-                        </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>

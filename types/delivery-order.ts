@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client'
+import { Prisma, CustomerType } from '@prisma/client'
 
 // Base DeliveryOrder type
 export type DeliveryOrder = {
@@ -22,8 +22,8 @@ export type DeliveryOrderItem = {
   doId: string
   soItemId: string
   itemCode: string
-  orderedQty: number
-  pickedQty: number
+  orderedQty: Prisma.Decimal
+  pickedQty: Prisma.Decimal
   unit: string
   batchNumber: string
   locationCode: string
@@ -35,7 +35,7 @@ export type DeliveryOrderWithRelations = DeliveryOrder & {
   customer: {
     customerCode: string
     customerName: string
-    customerType: string
+    customerType: CustomerType
     phone: string | null
     email: string | null
   }

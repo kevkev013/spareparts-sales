@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma'
+import { OrderStatus } from '@prisma/client'
 import { DOC_PREFIX } from '@/lib/constants'
 import type {
   SalesOrderInput,
@@ -189,7 +190,7 @@ export async function getSalesOrders(filter: SalesOrderFilter): Promise<SalesOrd
   }
 
   if (status) {
-    where.status = status as any
+    where.status = status as OrderStatus
   }
 
   if (dateFrom || dateTo) {

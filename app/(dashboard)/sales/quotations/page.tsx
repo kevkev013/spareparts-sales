@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Plus, Eye, Edit, Trash2, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { PermissionGate } from '@/components/permission-gate'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -65,12 +66,14 @@ export default async function SalesQuotationsPage({ searchParams }: PageProps) {
           <h1 className="text-3xl font-bold mb-2">Sales Quotation</h1>
           <p className="text-gray-600">Kelola penawaran harga untuk customer</p>
         </div>
-        <Link href="/sales/quotations/create">
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Tambah Quotation
-          </Button>
-        </Link>
+        <PermissionGate permission="quotations.create">
+          <Link href="/sales/quotations/create">
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Tambah Quotation
+            </Button>
+          </Link>
+        </PermissionGate>
       </div>
 
       {/* Filters */}
@@ -169,13 +172,15 @@ export default async function SalesQuotationsPage({ searchParams }: PageProps) {
                           <Eye className="h-4 w-4" />
                         </Button>
                       </Link>
-                      {!quotation.convertedToSo && (
-                        <Link href={`/sales/quotations/${quotation.id}/edit`}>
-                          <Button variant="ghost" size="sm">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        </Link>
-                      )}
+                      <PermissionGate permission="quotations.edit">
+                        {!quotation.convertedToSo && (
+                          <Link href={`/sales/quotations/${quotation.id}/edit`}>
+                            <Button variant="ghost" size="sm">
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </Link>
+                        )}
+                      </PermissionGate>
                     </div>
                   </TableCell>
                 </TableRow>

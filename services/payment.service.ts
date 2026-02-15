@@ -92,8 +92,7 @@ export async function getPayments(filter: PaymentFilter) {
 
     const total = await prisma.payment.count({ where })
 
-    const orderBy: Prisma.PaymentOrderByWithRelationInput = {}
-    orderBy[sortBy] = sortOrder
+    const orderBy = { [sortBy]: sortOrder } as Prisma.PaymentOrderByWithRelationInput
 
     const payments = await prisma.payment.findMany({
         where,

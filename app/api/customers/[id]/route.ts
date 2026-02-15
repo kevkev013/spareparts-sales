@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCustomerById, updateCustomer, deleteCustomer } from '@/services/customer.service'
 import { customerSchema } from '@/validations/customer'
+import { requireApiPermission } from '@/lib/auth-helpers'
 
 // GET /api/customers/[id] - Get customer by ID
 export async function GET(
@@ -8,6 +9,9 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    const { error } = await requireApiPermission('customers.view')
+    if (error) return error
+
     const customer = await getCustomerById(params.id)
 
     if (!customer) {
@@ -33,6 +37,9 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
+    const { error } = await requireApiPermission('customers.edit')
+    if (error) return error
+
     const body = await request.json()
 
     // Validate input
@@ -65,6 +72,9 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
+    const { error } = await requireApiPermission('customers.delete')
+    if (error) return error
+
     await deleteCustomer(params.id)
 
     return NextResponse.json({ message: 'Customer berhasil dihapus' })

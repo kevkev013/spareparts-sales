@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ChevronLeft, Printer, CreditCard } from 'lucide-react'
+import { ChevronLeft, CreditCard } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -15,6 +15,10 @@ import {
 import { getInvoiceById } from '@/services/invoice.service'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { INVOICE_STATUS } from '@/lib/constants'
+import { PrintButton } from '@/components/ui/print-button'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
+import { hasPermission } from '@/lib/auth-helpers'
 
 interface PageProps {
     params: {
@@ -23,6 +27,8 @@ interface PageProps {
 }
 
 export default async function InvoiceDetailPage({ params }: PageProps) {
+    const session = await getServerSession(authOptions)
+    const permissions = session?.user?.permissions
     const invoice = await getInvoiceById(params.id)
 
     if (!invoice) {
@@ -65,11 +71,8 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
                     </div>
                 </div>
                 <div className="flex gap-2">
-                    <Button variant="outline">
-                        <Printer className="h-4 w-4 mr-2" />
-                        Cetak Invoice
-                    </Button>
-                    {invoice.status !== 'paid' && invoice.status !== 'cancelled' && (
+                    <PrintButton label="Cetak Invoice" permission="invoices.print" />
+                    {invoice.status !== 'paid' && invoice.status !== 'cancelled' && hasPermission(permissions, 'payments.create') && (
                         <Link href={`/payments/create?invoiceId=${invoice.id}`}>
                             <Button>
                                 <CreditCard className="h-4 w-4 mr-2" />

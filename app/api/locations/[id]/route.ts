@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getLocationById, updateLocation, deleteLocation } from '@/services/location.service'
 import { locationSchema } from '@/validations/location'
+import { requireApiPermission } from '@/lib/auth-helpers'
 
 // GET /api/locations/[id] - Get location by ID
 export async function GET(
@@ -8,6 +9,9 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    const { error } = await requireApiPermission('locations.view')
+    if (error) return error
+
     const location = await getLocationById(params.id)
 
     if (!location) {
@@ -33,6 +37,9 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
+    const { error } = await requireApiPermission('locations.edit')
+    if (error) return error
+
     const body = await request.json()
 
     // Validate input
@@ -65,6 +72,9 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
+    const { error } = await requireApiPermission('locations.delete')
+    if (error) return error
+
     await deleteLocation(params.id)
 
     return NextResponse.json({ message: 'Lokasi berhasil dihapus' })

@@ -346,6 +346,18 @@ export async function deleteItem(id: string) {
     throw new Error('Item masih memiliki stok, tidak dapat dihapus')
   }
 
+  // Check if item is in active orders
+  const activeOrderItems = await prisma.salesOrderItem.count({
+    where: {
+      itemCode: item.itemCode,
+      salesOrder: { status: { in: ['confirmed', 'processing', 'partial_fulfilled'] } },
+    },
+  })
+
+  if (activeOrderItems > 0) {
+    throw new Error('Item masih ada di order aktif, tidak dapat dihapus')
+  }
+
   // Soft delete
   return await prisma.item.update({
     where: { id },

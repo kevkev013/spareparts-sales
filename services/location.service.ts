@@ -141,6 +141,10 @@ export async function getLocationByCode(locationCode: string) {
  * Create new location
  */
 export async function createLocation(data: LocationInput) {
+  if (!data.locationCode) {
+    throw new Error('Kode lokasi wajib diisi')
+  }
+
   // Check if location code already exists
   const existing = await prisma.location.findUnique({
     where: { locationCode: data.locationCode },
@@ -152,7 +156,7 @@ export async function createLocation(data: LocationInput) {
 
   // Create location
   const location = await prisma.location.create({
-    data,
+    data: data as LocationInput & { locationCode: string },
   })
 
   return location

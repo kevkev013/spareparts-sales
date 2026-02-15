@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireApiPermission } from '@/lib/auth-helpers'
 import { getDeliveryOrders, createDeliveryOrder } from '@/services/delivery-order.service'
 import type { DeliveryOrderFilter } from '@/types/delivery-order'
 
@@ -7,6 +8,9 @@ import type { DeliveryOrderFilter } from '@/types/delivery-order'
  */
 export async function GET(request: NextRequest) {
   try {
+    const { error } = await requireApiPermission('delivery_orders.view')
+    if (error) return error
+
     const { searchParams } = new URL(request.url)
 
     const filter: DeliveryOrderFilter = {
@@ -39,6 +43,9 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    const { error } = await requireApiPermission('delivery_orders.create')
+    if (error) return error
+
     const body = await request.json()
     const { soId, pickerName } = body
 

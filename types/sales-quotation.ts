@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client'
+import { Prisma, CustomerType } from '@prisma/client'
 
 // Base SalesQuotation type from Prisma
 export type SalesQuotation = {
@@ -24,7 +24,7 @@ export type SalesQuotationItem = {
   id: string
   sqId: string
   itemCode: string
-  quantity: number
+  quantity: Prisma.Decimal
   unit: string
   unitPrice: Prisma.Decimal
   discountPercent: Prisma.Decimal
@@ -38,7 +38,7 @@ export type SalesQuotationWithRelations = SalesQuotation & {
   customer: {
     customerCode: string
     customerName: string
-    customerType: string
+    customerType: CustomerType
     phone: string | null
     email: string | null
     discountRate: Prisma.Decimal

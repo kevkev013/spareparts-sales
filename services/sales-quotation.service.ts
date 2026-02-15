@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma'
+import { QuotationStatus } from '@prisma/client'
 import { DOC_PREFIX } from '@/lib/constants'
 import type {
   SalesQuotationInput,
@@ -109,7 +110,7 @@ export async function getSalesQuotations(
   }
 
   if (status) {
-    where.status = status as any
+    where.status = status as QuotationStatus
   }
 
   if (dateFrom || dateTo) {

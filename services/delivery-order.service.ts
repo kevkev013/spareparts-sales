@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma'
+import { DeliveryStatus } from '@prisma/client'
 import { DOC_PREFIX } from '@/lib/constants'
 import type {
   DeliveryOrderInput,
@@ -212,7 +213,7 @@ export async function getDeliveryOrders(
 
   if (soNumber) where.soNumber = soNumber
   if (customerCode) where.customerCode = customerCode
-  if (status) where.status = status as any
+  if (status) where.status = status as DeliveryStatus
 
   if (dateFrom || dateTo) {
     where.doDate = {}

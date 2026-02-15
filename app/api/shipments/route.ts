@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireApiPermission } from '@/lib/auth-helpers'
 import { getShipments, createShipment } from '@/services/shipment.service'
 import type { ShipmentFilter } from '@/services/shipment.service'
 
@@ -7,6 +8,9 @@ import type { ShipmentFilter } from '@/services/shipment.service'
  */
 export async function GET(request: NextRequest) {
     try {
+        const { error } = await requireApiPermission('shipments.view')
+        if (error) return error
+
         const { searchParams } = new URL(request.url)
 
         const filter: ShipmentFilter = {
@@ -38,6 +42,9 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
     try {
+        const { error } = await requireApiPermission('shipments.create')
+        if (error) return error
+
         const body = await request.json()
 
         // Parse date strings to Date objects

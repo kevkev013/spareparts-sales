@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getItems, createItem, generateItemCode } from '@/services/item.service'
 import { itemSchema, itemFilterSchema } from '@/validations/item'
+import { requireApiPermission } from '@/lib/auth-helpers'
 
 // GET /api/items - Get all items with filters
 export async function GET(request: NextRequest) {
   try {
+    const { error } = await requireApiPermission('items.view')
+    if (error) return error
+
     const searchParams = request.nextUrl.searchParams
 
     // Parse query params
@@ -38,6 +42,9 @@ export async function GET(request: NextRequest) {
 // POST /api/items - Create new item
 export async function POST(request: NextRequest) {
   try {
+    const { error } = await requireApiPermission('items.create')
+    if (error) return error
+
     const body = await request.json()
 
     // Validate input

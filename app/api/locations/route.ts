@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getLocations, createLocation } from '@/services/location.service'
 import { locationSchema, locationFilterSchema } from '@/validations/location'
+import { requireApiPermission } from '@/lib/auth-helpers'
 
 // GET /api/locations - Get all locations with filters
 export async function GET(request: NextRequest) {
   try {
+    const { error } = await requireApiPermission('locations.view')
+    if (error) return error
+
     const searchParams = request.nextUrl.searchParams
 
     // Parse query params
@@ -38,6 +42,9 @@ export async function GET(request: NextRequest) {
 // POST /api/locations - Create new location
 export async function POST(request: NextRequest) {
   try {
+    const { error } = await requireApiPermission('locations.create')
+    if (error) return error
+
     const body = await request.json()
 
     // Validate input

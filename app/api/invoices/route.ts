@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireApiPermission } from '@/lib/auth-helpers'
 import { getInvoices, createInvoice } from '@/services/invoice.service'
 
 /**
@@ -6,6 +7,9 @@ import { getInvoices, createInvoice } from '@/services/invoice.service'
  */
 export async function GET(request: NextRequest) {
   try {
+    const { error } = await requireApiPermission('invoices.view')
+    if (error) return error
+
     const { searchParams } = new URL(request.url)
 
     const filter = {
@@ -33,6 +37,9 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    const { error } = await requireApiPermission('invoices.create')
+    if (error) return error
+
     const body = await request.json()
     const { soId, creditTerm } = body
 

@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ChevronLeft, Edit, Printer } from 'lucide-react'
+import { ChevronLeft, Edit } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -15,8 +15,12 @@ import {
 import { getSalesOrderById } from '@/services/sales-order.service'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { ORDER_STATUS } from '@/lib/constants'
+import { PrintButton } from '@/components/ui/print-button'
 import { CreateDoButton } from './create-do-button'
 import { CreateInvoiceButton } from './create-invoice-button'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
+import { hasPermission } from '@/lib/auth-helpers'
 
 interface PageProps {
     params: {
@@ -25,6 +29,8 @@ interface PageProps {
 }
 
 export default async function SalesOrderDetailPage({ params }: PageProps) {
+    const session = await getServerSession(authOptions)
+    const permissions = session?.user?.permissions
     const order = await getSalesOrderById(params.id)
 
     if (!order) {
@@ -67,10 +73,7 @@ export default async function SalesOrderDetailPage({ params }: PageProps) {
                     </div>
                 </div>
                 <div className="flex gap-2">
-                    <Button variant="outline">
-                        <Printer className="h-4 w-4 mr-2" />
-                        Cetak
-                    </Button>
+                    <PrintButton label="Cetak" permission="orders.print" />
                     {(order.status === 'confirmed' ||
                         order.status === 'processing' ||
                         order.status === 'partial_fulfilled') && (
@@ -79,7 +82,7 @@ export default async function SalesOrderDetailPage({ params }: PageProps) {
                     {(order.status === 'fulfilled' || order.status === 'partial_fulfilled') && (
                         <CreateInvoiceButton soId={order.id} />
                     )}
-                    {order.status !== 'fulfilled' && order.status !== 'cancelled' && (
+                    {order.status !== 'fulfilled' && order.status !== 'cancelled' && hasPermission(permissions, 'orders.edit') && (
                         <Link href={`/sales/orders/${order.id}/edit`}>
                             <Button>
                                 <Edit className="h-4 w-4 mr-2" />

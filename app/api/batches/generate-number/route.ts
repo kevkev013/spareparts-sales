@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { generateBatchNumber } from '@/services/batch.service'
+import { requireApiPermission } from '@/lib/auth-helpers'
 
 // POST /api/batches/generate-number - Generate batch number for a date
 export async function POST(request: NextRequest) {
   try {
+    const { error } = await requireApiPermission('batches.create')
+    if (error) return error
+
     const body = await request.json()
     const { purchaseDate } = body
 

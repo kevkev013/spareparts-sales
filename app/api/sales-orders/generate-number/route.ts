@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireApiPermission } from '@/lib/auth-helpers'
 import { generateSoNumber } from '@/services/sales-order.service'
 
 /**
@@ -7,6 +8,9 @@ import { generateSoNumber } from '@/services/sales-order.service'
  */
 export async function POST(request: NextRequest) {
   try {
+    const { error } = await requireApiPermission('orders.create')
+    if (error) return error
+
     const body = await request.json()
     const { soDate } = body
 

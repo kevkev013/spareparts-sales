@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireApiPermission } from '@/lib/auth-helpers'
 import {
   getDeliveryOrderById,
   completePicking,
@@ -10,6 +11,9 @@ import {
  */
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
+    const { error } = await requireApiPermission('delivery_orders.view')
+    if (error) return error
+
     const deliveryOrder = await getDeliveryOrderById(params.id)
 
     if (!deliveryOrder) {

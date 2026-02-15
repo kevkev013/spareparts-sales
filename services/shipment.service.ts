@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { DOC_PREFIX } from '@/lib/constants'
-import { Prisma } from '@prisma/client'
+import { Prisma, ShipmentStatus } from '@prisma/client'
 
 export type ShipmentInput = {
     sjNumber?: string
@@ -86,7 +86,7 @@ export async function getShipments(filter: ShipmentFilter) {
     }
 
     if (customerCode) where.customerCode = customerCode
-    if (status) where.status = status as any
+    if (status) where.status = status as ShipmentStatus
 
     if (dateFrom || dateTo) {
         where.sjDate = {}
@@ -96,8 +96,7 @@ export async function getShipments(filter: ShipmentFilter) {
 
     const total = await prisma.shipment.count({ where })
 
-    const orderBy: Prisma.ShipmentOrderByWithRelationInput = {}
-    orderBy[sortBy] = sortOrder
+    const orderBy = { [sortBy]: sortOrder } as Prisma.ShipmentOrderByWithRelationInput
 
     const shipments = await prisma.shipment.findMany({
         where,

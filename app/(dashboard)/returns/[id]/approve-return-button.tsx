@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { CheckCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { usePermissions } from '@/hooks/use-permissions'
 
 interface Props {
     id: string
@@ -12,6 +13,11 @@ interface Props {
 export function ApproveReturnButton({ id }: Props) {
     const router = useRouter()
     const [loading, setLoading] = useState(false)
+    const { can } = usePermissions()
+
+    if (!can('returns.approve')) {
+        return null
+    }
 
     const handleApprove = async () => {
         if (!confirm('Approve retur ini? Stok akan dikembalikan (jika kondisi baik).')) {

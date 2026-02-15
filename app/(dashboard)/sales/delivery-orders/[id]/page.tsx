@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ChevronLeft, CheckCircle, Truck, Printer } from 'lucide-react'
+import { ChevronLeft, CheckCircle, Truck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -15,7 +15,11 @@ import {
 import { getDeliveryOrderById } from '@/services/delivery-order.service'
 import { formatDate } from '@/lib/utils'
 import { DELIVERY_STATUS } from '@/lib/constants'
+import { PrintButton } from '@/components/ui/print-button'
 import { CompletePickingButton } from './complete-picking-button'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
+import { hasPermission } from '@/lib/auth-helpers'
 
 interface PageProps {
     params: {
@@ -24,6 +28,8 @@ interface PageProps {
 }
 
 export default async function DeliveryOrderDetailPage({ params }: PageProps) {
+    const session = await getServerSession(authOptions)
+    const permissions = session?.user?.permissions
     const deliveryOrder = await getDeliveryOrderById(params.id)
 
     if (!deliveryOrder) {
@@ -64,14 +70,11 @@ export default async function DeliveryOrderDetailPage({ params }: PageProps) {
                     </div>
                 </div>
                 <div className="flex gap-2">
-                    <Button variant="outline">
-                        <Printer className="h-4 w-4 mr-2" />
-                        Cetak Picking List
-                    </Button>
+                    <PrintButton label="Cetak Picking List" permission="delivery_orders.print" />
                     {deliveryOrder.status === 'picking' && (
                         <CompletePickingButton id={deliveryOrder.id} />
                     )}
-                    {deliveryOrder.status === 'picked' && (
+                    {deliveryOrder.status === 'picked' && hasPermission(permissions, 'shipments.create') && (
                         <Link href={`/sales/shipments/create?doId=${deliveryOrder.id}`}>
                             <Button>
                                 <Truck className="h-4 w-4 mr-2" />

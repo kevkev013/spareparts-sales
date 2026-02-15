@@ -17,8 +17,10 @@ import { formatCurrency } from '@/lib/utils'
 import type { CustomersResponse } from '@/types/customer'
 import { CUSTOMER_TYPE_LABELS } from '@/types/customer'
 import { Plus, Search, Edit, Trash2, Eye } from 'lucide-react'
+import { usePermissions } from '@/hooks/use-permissions'
 
 export default function CustomersPage() {
+  const { can } = usePermissions()
   const [data, setData] = useState<CustomersResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -93,12 +95,14 @@ export default function CustomersPage() {
             className="pl-10"
           />
         </div>
-        <Link href="/master/customers/create">
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Tambah Customer
-          </Button>
-        </Link>
+        {can('customers.create') && (
+          <Link href="/master/customers/create">
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Tambah Customer
+            </Button>
+          </Link>
+        )}
       </div>
 
       {/* Table */}
@@ -177,18 +181,22 @@ export default function CustomersPage() {
                             <Eye className="h-4 w-4" />
                           </Button>
                         </Link>
-                        <Link href={`/master/customers/${customer.id}/edit`}>
-                          <Button variant="ghost" size="sm">
-                            <Edit className="h-4 w-4" />
+                        {can('customers.edit') && (
+                          <Link href={`/master/customers/${customer.id}/edit`}>
+                            <Button variant="ghost" size="sm">
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </Link>
+                        )}
+                        {can('customers.delete') && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDelete(customer.id, customer.customerName)}
+                          >
+                            <Trash2 className="h-4 w-4 text-red-600" />
                           </Button>
-                        </Link>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDelete(customer.id, customer.customerName)}
-                        >
-                          <Trash2 className="h-4 w-4 text-red-600" />
-                        </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -200,7 +208,7 @@ export default function CustomersPage() {
             <div className="flex items-center justify-between px-4 py-4 border-t">
               <div className="text-sm text-gray-600">
                 Menampilkan {(page - 1) * limit + 1} -{' '}
-                {Math.min(page * limit, data.pagination?.total || 0)} dari {data.pagination?.total || 0} customer
+                {Math.min(page * limit, data.total || 0)} dari {data.total || 0} customer
               </div>
               <div className="flex gap-2">
                 <Button
@@ -215,7 +223,7 @@ export default function CustomersPage() {
                   variant="outline"
                   size="sm"
                   onClick={() => setPage(page + 1)}
-                  disabled={page >= (data.pagination?.totalPages || 1)}
+                  disabled={page >= (data.totalPages || 1)}
                 >
                   Selanjutnya
                 </Button>

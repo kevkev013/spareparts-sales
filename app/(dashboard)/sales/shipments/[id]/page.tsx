@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ChevronLeft, Printer } from 'lucide-react'
+import { ChevronLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/table'
 import { getShipmentById } from '@/services/shipment.service'
 import { formatDate } from '@/lib/utils'
+import { PrintButton } from '@/components/ui/print-button'
 import { MarkDeliveredButton } from './mark-delivered-button'
 
 interface PageProps {
@@ -56,10 +57,7 @@ export default async function ShipmentDetailPage({ params }: PageProps) {
                     </div>
                 </div>
                 <div className="flex gap-2">
-                    <Button variant="outline">
-                        <Printer className="h-4 w-4 mr-2" />
-                        Cetak Surat Jalan
-                    </Button>
+                    <PrintButton label="Cetak Surat Jalan" permission="shipments.print" />
                     {shipment.status === 'in_transit' && <MarkDeliveredButton id={shipment.id} />}
                 </div>
             </div>

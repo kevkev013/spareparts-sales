@@ -1,9 +1,44 @@
 import { PrismaClient } from '@prisma/client'
+import bcrypt from 'bcryptjs'
+import { DEFAULT_ROLES } from '../lib/permissions'
 
 const prisma = new PrismaClient()
 
 async function main() {
-  console.log('🌱 Seeding database...')
+  console.log('Seeding database...')
+
+  // Seed Roles
+  console.log('Creating roles...')
+  for (const role of DEFAULT_ROLES) {
+    await prisma.role.upsert({
+      where: { name: role.name },
+      update: { permissions: role.permissions },
+      create: {
+        name: role.name,
+        description: role.description,
+        isSystem: role.isSystem,
+        permissions: role.permissions,
+      },
+    })
+  }
+
+  // Seed Admin User
+  console.log('Creating admin user...')
+  const adminRole = await prisma.role.findUnique({ where: { name: 'Admin' } })
+  if (adminRole) {
+    const passwordHash = await bcrypt.hash('admin123', 12)
+    await prisma.user.upsert({
+      where: { username: 'admin' },
+      update: {},
+      create: {
+        username: 'admin',
+        passwordHash,
+        fullName: 'Administrator',
+        roleId: adminRole.id,
+        isActive: true,
+      },
+    })
+  }
 
   // Seed Tax Master
   console.log('Creating tax rates...')

@@ -15,8 +15,10 @@ import {
 } from '@/components/ui/table'
 import type { LocationsResponse } from '@/types/location'
 import { Plus, Search, Edit, Trash2, Eye, Package } from 'lucide-react'
+import { usePermissions } from '@/hooks/use-permissions'
 
 export default function LocationsPage() {
+  const { can } = usePermissions()
   const [data, setData] = useState<LocationsResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -91,12 +93,14 @@ export default function LocationsPage() {
             className="pl-10"
           />
         </div>
-        <Link href="/master/locations/create">
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Tambah Lokasi
-          </Button>
-        </Link>
+        {can('locations.create') && (
+          <Link href="/master/locations/create">
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Tambah Lokasi
+            </Button>
+          </Link>
+        )}
       </div>
 
       {/* Table */}
@@ -166,18 +170,22 @@ export default function LocationsPage() {
                             <Eye className="h-4 w-4" />
                           </Button>
                         </Link>
-                        <Link href={`/master/locations/${location.id}/edit`}>
-                          <Button variant="ghost" size="sm">
-                            <Edit className="h-4 w-4" />
+                        {can('locations.edit') && (
+                          <Link href={`/master/locations/${location.id}/edit`}>
+                            <Button variant="ghost" size="sm">
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </Link>
+                        )}
+                        {can('locations.delete') && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDelete(location.id, location.locationName)}
+                          >
+                            <Trash2 className="h-4 w-4 text-red-600" />
                           </Button>
-                        </Link>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDelete(location.id, location.locationName)}
-                        >
-                          <Trash2 className="h-4 w-4 text-red-600" />
-                        </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>

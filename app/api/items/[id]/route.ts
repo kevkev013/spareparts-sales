@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getItemById, updateItem, deleteItem } from '@/services/item.service'
 import { itemSchema } from '@/validations/item'
+import { requireApiPermission } from '@/lib/auth-helpers'
 
 // GET /api/items/[id] - Get item by ID
 export async function GET(
@@ -8,6 +9,9 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    const { error } = await requireApiPermission('items.view')
+    if (error) return error
+
     const item = await getItemById(params.id)
 
     if (!item) {
@@ -33,6 +37,9 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
+    const { error } = await requireApiPermission('items.edit')
+    if (error) return error
+
     const body = await request.json()
 
     // Validate input
@@ -65,6 +72,9 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
+    const { error } = await requireApiPermission('items.delete')
+    if (error) return error
+
     await deleteItem(params.id)
 
     return NextResponse.json({ message: 'Item berhasil dihapus' })

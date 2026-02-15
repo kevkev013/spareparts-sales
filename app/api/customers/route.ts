@@ -2,10 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getCustomers, createCustomer } from '@/services/customer.service'
 import { customerSchema, customerFilterSchema } from '@/validations/customer'
 import { CustomerType } from '@prisma/client'
+import { requireApiPermission } from '@/lib/auth-helpers'
 
 // GET /api/customers - Get all customers with filters
 export async function GET(request: NextRequest) {
   try {
+    const { error } = await requireApiPermission('customers.view')
+    if (error) return error
+
     const searchParams = request.nextUrl.searchParams
 
     // Parse query params
@@ -40,6 +44,9 @@ export async function GET(request: NextRequest) {
 // POST /api/customers - Create new customer
 export async function POST(request: NextRequest) {
   try {
+    const { error } = await requireApiPermission('customers.create')
+    if (error) return error
+
     const body = await request.json()
 
     // Validate input

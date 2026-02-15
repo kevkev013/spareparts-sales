@@ -16,8 +16,10 @@ import {
 import { formatCurrency } from '@/lib/utils'
 import type { ItemsResponse } from '@/types/item'
 import { Plus, Search, Edit, Trash2, Eye } from 'lucide-react'
+import { usePermissions } from '@/hooks/use-permissions'
 
 export default function ItemsPage() {
+  const { can } = usePermissions()
   const [data, setData] = useState<ItemsResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -92,12 +94,14 @@ export default function ItemsPage() {
             className="pl-10"
           />
         </div>
-        <Link href="/master/items/create">
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Tambah Item
-          </Button>
-        </Link>
+        {can('items.create') && (
+          <Link href="/master/items/create">
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Tambah Item
+            </Button>
+          </Link>
+        )}
       </div>
 
       {/* Table */}
@@ -171,18 +175,22 @@ export default function ItemsPage() {
                             <Eye className="h-4 w-4" />
                           </Button>
                         </Link>
-                        <Link href={`/master/items/${item.id}/edit`}>
-                          <Button variant="ghost" size="sm">
-                            <Edit className="h-4 w-4" />
+                        {can('items.edit') && (
+                          <Link href={`/master/items/${item.id}/edit`}>
+                            <Button variant="ghost" size="sm">
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </Link>
+                        )}
+                        {can('items.delete') && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDelete(item.id, item.itemName)}
+                          >
+                            <Trash2 className="h-4 w-4 text-red-600" />
                           </Button>
-                        </Link>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDelete(item.id, item.itemName)}
-                        >
-                          <Trash2 className="h-4 w-4 text-red-600" />
-                        </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>

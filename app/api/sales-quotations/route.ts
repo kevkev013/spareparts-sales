@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireApiPermission } from '@/lib/auth-helpers'
 import {
   getSalesQuotations,
   createSalesQuotation,
@@ -12,6 +13,9 @@ import type { SalesQuotationFilter } from '@/types/sales-quotation'
  */
 export async function GET(request: NextRequest) {
   try {
+    const { error } = await requireApiPermission('quotations.view')
+    if (error) return error
+
     const { searchParams } = new URL(request.url)
 
     const filter: SalesQuotationFilter = {
@@ -44,6 +48,9 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    const { error } = await requireApiPermission('quotations.create')
+    if (error) return error
+
     const body = await request.json()
 
     // Validate input

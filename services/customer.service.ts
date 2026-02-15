@@ -111,12 +111,33 @@ export async function getCustomerById(id: string): Promise<CustomerDetailRespons
     return null
   }
 
-  // For now, return empty stats (will be populated when we implement sales)
+  // Get real stats from sales data
+  const totalOrders = await prisma.salesOrder.count({
+    where: { customerCode: customer.customerCode },
+  })
+
+  const invoices = await prisma.invoice.findMany({
+    where: { customerCode: customer.customerCode },
+    select: {
+      grandTotal: true,
+      remainingAmount: true,
+    },
+  })
+
+  const totalRevenue = invoices.reduce((sum, inv) => sum + Number(inv.grandTotal), 0)
+  const outstandingBalance = invoices.reduce((sum, inv) => sum + Number(inv.remainingAmount), 0)
+
+  const lastOrder = await prisma.salesOrder.findFirst({
+    where: { customerCode: customer.customerCode },
+    orderBy: { soDate: 'desc' },
+    select: { soDate: true },
+  })
+
   const stats = {
-    totalOrders: 0,
-    totalRevenue: 0,
-    outstandingBalance: 0,
-    lastOrderDate: null,
+    totalOrders,
+    totalRevenue,
+    outstandingBalance,
+    lastOrderDate: lastOrder?.soDate || null,
   }
 
   return {
@@ -194,8 +215,30 @@ export async function deleteCustomer(id: string) {
     throw new Error('Customer tidak ditemukan')
   }
 
-  // TODO: Check if customer has orders before deleting
-  // For now, just soft delete
+  // Check if customer has active orders
+  const activeOrders = await prisma.salesOrder.count({
+    where: {
+      customerCode: customer.customerCode,
+      status: { in: ['confirmed', 'processing', 'partial_fulfilled'] },
+    },
+  })
+
+  if (activeOrders > 0) {
+    throw new Error(`Customer masih memiliki ${activeOrders} order aktif. Selesaikan order terlebih dahulu.`)
+  }
+
+  // Check for unpaid invoices
+  const unpaidInvoices = await prisma.invoice.count({
+    where: {
+      customerCode: customer.customerCode,
+      status: { in: ['unpaid', 'partial_paid', 'overdue'] },
+    },
+  })
+
+  if (unpaidInvoices > 0) {
+    throw new Error(`Customer masih memiliki ${unpaidInvoices} invoice belum lunas. Selesaikan pembayaran terlebih dahulu.`)
+  }
+
   return await prisma.customer.update({
     where: { id },
     data: { isActive: false },

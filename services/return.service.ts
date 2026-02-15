@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { DOC_PREFIX } from '@/lib/constants'
-import { Prisma } from '@prisma/client'
+import { Prisma, ReturnStatus } from '@prisma/client'
 
 export type ReturnItemInput = {
     itemCode: string
@@ -39,7 +39,7 @@ export async function generateReturnNumber(returnDate: Date): Promise<string> {
     const year = returnDate.getFullYear()
     const month = String(returnDate.getMonth() + 1).padStart(2, '0')
     const period = `${year}${month}`
-    const prefix = `${DOC_PREFIX.RETURN || 'RET'}-${period}`
+    const prefix = `${DOC_PREFIX.RETURN_REQUEST}-${period}`
 
     const lastReturn = await prisma.return.findFirst({
         where: {
@@ -90,7 +90,7 @@ export async function getReturns(filter: ReturnFilter) {
     }
 
     if (customerCode) where.customerCode = customerCode
-    if (status) where.status = status as any
+    if (status) where.status = status as ReturnStatus
 
     if (dateFrom || dateTo) {
         where.returnDate = {}
@@ -100,8 +100,7 @@ export async function getReturns(filter: ReturnFilter) {
 
     const total = await prisma.return.count({ where })
 
-    const orderBy: Prisma.ReturnOrderByWithRelationInput = {}
-    orderBy[sortBy] = sortOrder
+    const orderBy = { [sortBy]: sortOrder } as Prisma.ReturnOrderByWithRelationInput
 
     const returns = await prisma.return.findMany({
         where,

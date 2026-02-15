@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireApiPermission } from '@/lib/auth-helpers'
 import {
   getSalesQuotationById,
   updateSalesQuotation,
@@ -12,6 +13,9 @@ import { salesQuotationSchema } from '@/validations/sales-quotation'
  */
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
+    const { error } = await requireApiPermission('quotations.view')
+    if (error) return error
+
     const quotation = await getSalesQuotationById(params.id)
 
     if (!quotation) {
@@ -31,6 +35,9 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
  */
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
+    const { error } = await requireApiPermission('quotations.edit')
+    if (error) return error
+
     const body = await request.json()
 
     // Validate input
@@ -60,6 +67,9 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
  */
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
+    const { error } = await requireApiPermission('quotations.delete')
+    if (error) return error
+
     await deleteSalesQuotation(params.id)
 
     return NextResponse.json({ message: 'Sales quotation deleted successfully' })

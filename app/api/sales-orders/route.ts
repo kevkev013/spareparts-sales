@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireApiPermission } from '@/lib/auth-helpers'
 import { getSalesOrders, createSalesOrder } from '@/services/sales-order.service'
 import { salesOrderSchema } from '@/validations/sales-order'
 import type { SalesOrderFilter } from '@/types/sales-order'
@@ -9,6 +10,9 @@ import type { SalesOrderFilter } from '@/types/sales-order'
  */
 export async function GET(request: NextRequest) {
   try {
+    const { error } = await requireApiPermission('orders.view')
+    if (error) return error
+
     const { searchParams } = new URL(request.url)
 
     const filter: SalesOrderFilter = {
@@ -41,6 +45,9 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    const { error } = await requireApiPermission('orders.create')
+    if (error) return error
+
     const body = await request.json()
 
     // Validate input

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { FileText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { usePermissions } from '@/hooks/use-permissions'
 
 interface Props {
     soId: string
@@ -12,6 +13,11 @@ interface Props {
 export function CreateInvoiceButton({ soId }: Props) {
     const router = useRouter()
     const [loading, setLoading] = useState(false)
+    const { can } = usePermissions()
+
+    if (!can('invoices.create')) {
+        return null
+    }
 
     const handleCreate = async () => {
         if (!confirm('Buat Invoice untuk pesanan ini?')) {

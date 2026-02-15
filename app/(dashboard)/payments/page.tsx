@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Eye, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { PermissionGate } from '@/components/permission-gate'
 import {
     Table,
     TableBody,
@@ -34,12 +35,14 @@ export default async function PaymentsPage({ searchParams }: PageProps) {
                     <h1 className="text-3xl font-bold mb-2">Payments</h1>
                     <p className="text-gray-600">Daftar pembayaran dari customer</p>
                 </div>
-                <Link href="/payments/create">
-                    <Button>
-                        <Plus className="h-4 w-4 mr-2" />
-                        Catat Pembayaran
-                    </Button>
-                </Link>
+                <PermissionGate permission="payments.create">
+                    <Link href="/payments/create">
+                        <Button>
+                            <Plus className="h-4 w-4 mr-2" />
+                            Catat Pembayaran
+                        </Button>
+                    </Link>
+                </PermissionGate>
             </div>
 
             {/* Table */}

@@ -1,12 +1,21 @@
 import Link from 'next/link'
-import { ChevronLeft, Edit, User, Mail, Phone, MapPin, CreditCard } from 'lucide-react'
+import { ChevronLeft, Edit, Mail, Phone, MapPin, CreditCard } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import { getCustomerById } from '@/services/customer.service'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { CUSTOMER_TYPE_LABELS } from '@/types/customer'
 import { notFound } from 'next/navigation'
+import { prisma } from '@/lib/prisma'
 
 export default async function CustomerDetailPage({ params }: { params: { id: string } }) {
   const customerData = await getCustomerById(params.id)
@@ -16,6 +25,36 @@ export default async function CustomerDetailPage({ params }: { params: { id: str
   }
 
   const { customer, stats } = customerData
+
+  // Fetch recent orders for this customer
+  const recentOrders = await prisma.salesOrder.findMany({
+    where: { customerCode: customer.customerCode },
+    orderBy: { soDate: 'desc' },
+    take: 10,
+    select: {
+      id: true,
+      soNumber: true,
+      soDate: true,
+      grandTotal: true,
+      status: true,
+    },
+  })
+
+  const STATUS_LABELS: Record<string, string> = {
+    confirmed: 'Terkonfirmasi',
+    processing: 'Diproses',
+    partial_fulfilled: 'Sebagian',
+    fulfilled: 'Terpenuhi',
+    cancelled: 'Dibatalkan',
+  }
+
+  const STATUS_COLORS: Record<string, string> = {
+    confirmed: 'bg-blue-100 text-blue-800',
+    processing: 'bg-yellow-100 text-yellow-800',
+    partial_fulfilled: 'bg-orange-100 text-orange-800',
+    fulfilled: 'bg-green-100 text-green-800',
+    cancelled: 'bg-red-100 text-red-800',
+  }
 
   return (
     <div className="container mx-auto py-8">
@@ -51,7 +90,6 @@ export default async function CustomerDetailPage({ params }: { params: { id: str
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        {/* Stats Cards (Will be populated when we have sales data) */}
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-medium text-gray-600">
@@ -181,17 +219,54 @@ export default async function CustomerDetailPage({ params }: { params: { id: str
         </Card>
       </div>
 
-      {/* Recent Orders - Will be implemented when we have sales */}
+      {/* Recent Orders */}
       <Card className="mt-6">
         <CardHeader>
           <CardTitle>Riwayat Transaksi</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-8">
-            <p className="text-gray-500">
-              Belum ada transaksi. Data akan muncul setelah fitur Sales diimplementasikan.
-            </p>
-          </div>
+          {recentOrders.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-gray-500">Belum ada transaksi untuk customer ini.</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>No. SO</TableHead>
+                  <TableHead>Tanggal</TableHead>
+                  <TableHead className="text-right">Grand Total</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {recentOrders.map((order) => (
+                  <TableRow key={order.id}>
+                    <TableCell className="font-mono text-sm">{order.soNumber}</TableCell>
+                    <TableCell>{formatDate(order.soDate)}</TableCell>
+                    <TableCell className="text-right font-medium">
+                      {formatCurrency(Number(order.grandTotal))}
+                    </TableCell>
+                    <TableCell>
+                      <span
+                        className={`text-xs px-2 py-1 rounded-full ${STATUS_COLORS[order.status] || 'bg-gray-100 text-gray-800'}`}
+                      >
+                        {STATUS_LABELS[order.status] || order.status}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <Link href={`/sales/orders/${order.id}`}>
+                        <Button variant="ghost" size="sm">
+                          Lihat
+                        </Button>
+                      </Link>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </div>

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { CheckCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { usePermissions } from '@/hooks/use-permissions'
 
 interface Props {
     id: string
@@ -12,6 +13,11 @@ interface Props {
 export function MarkDeliveredButton({ id }: Props) {
     const router = useRouter()
     const [loading, setLoading] = useState(false)
+    const { can } = usePermissions()
+
+    if (!can('shipments.edit')) {
+        return null
+    }
 
     const handleMarkDelivered = async () => {
         if (!confirm('Tandai pengiriman ini sebagai sudah sampai (delivered)?')) {

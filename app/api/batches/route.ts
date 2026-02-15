@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getBatches, createBatch } from '@/services/batch.service'
 import { batchSchema, batchFilterSchema } from '@/validations/batch'
+import { requireApiPermission } from '@/lib/auth-helpers'
 
 // GET /api/batches - Get all batches with filters
 export async function GET(request: NextRequest) {
   try {
+    const { error } = await requireApiPermission('batches.view')
+    if (error) return error
+
     const searchParams = request.nextUrl.searchParams
 
     // Parse query params
@@ -37,6 +41,9 @@ export async function GET(request: NextRequest) {
 // POST /api/batches - Create new batch
 export async function POST(request: NextRequest) {
   try {
+    const { error } = await requireApiPermission('batches.create')
+    if (error) return error
+
     const body = await request.json()
 
     // Validate input

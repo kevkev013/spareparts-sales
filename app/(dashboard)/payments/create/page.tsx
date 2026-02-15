@@ -1,3 +1,6 @@
+'use client'
+
+import { Suspense } from 'react'
 import Link from 'next/link'
 import { ChevronLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -20,7 +23,9 @@ export default function CreatePaymentPage() {
                 <p className="text-gray-600">Input data pembayaran dari customer</p>
             </div>
 
-            <PaymentForm />
+            <Suspense fallback={<div>Loading...</div>}>
+                <PaymentForm />
+            </Suspense>
         </div>
     )
 }

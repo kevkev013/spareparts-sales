@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Plus, Eye, Edit, XCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { PermissionGate } from '@/components/permission-gate'
 import { Badge } from '@/components/ui/badge'
 import {
   Table,
@@ -56,12 +57,14 @@ export default async function SalesOrdersPage({ searchParams }: PageProps) {
           <h1 className="text-3xl font-bold mb-2">Sales Orders</h1>
           <p className="text-gray-600">Kelola pesanan penjualan dari customer</p>
         </div>
-        <Link href="/sales/orders/create">
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Tambah Order
-          </Button>
-        </Link>
+        <PermissionGate permission="orders.create">
+          <Link href="/sales/orders/create">
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Tambah Order
+            </Button>
+          </Link>
+        </PermissionGate>
       </div>
 
       {/* Table */}
@@ -120,13 +123,15 @@ export default async function SalesOrdersPage({ searchParams }: PageProps) {
                           <Eye className="h-4 w-4" />
                         </Button>
                       </Link>
-                      {order.status !== 'fulfilled' && order.status !== 'cancelled' && (
-                        <Link href={`/sales/orders/${order.id}/edit`}>
-                          <Button variant="ghost" size="sm">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        </Link>
-                      )}
+                      <PermissionGate permission="orders.edit">
+                        {order.status !== 'fulfilled' && order.status !== 'cancelled' && (
+                          <Link href={`/sales/orders/${order.id}/edit`}>
+                            <Button variant="ghost" size="sm">
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </Link>
+                        )}
+                      </PermissionGate>
                     </div>
                   </TableCell>
                 </TableRow>

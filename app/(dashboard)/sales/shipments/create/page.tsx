@@ -1,3 +1,6 @@
+'use client'
+
+import { Suspense } from 'react'
 import Link from 'next/link'
 import { ChevronLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -20,7 +23,9 @@ export default function CreateShipmentPage() {
                 <p className="text-gray-600">Isi informasi pengiriman untuk membuat surat jalan</p>
             </div>
 
-            <ShipmentForm />
+            <Suspense fallback={<div>Loading...</div>}>
+                <ShipmentForm />
+            </Suspense>
         </div>
     )
 }

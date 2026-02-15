@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Truck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { usePermissions } from '@/hooks/use-permissions'
 
 interface Props {
     soId: string
@@ -12,6 +13,11 @@ interface Props {
 export function CreateDoButton({ soId }: Props) {
     const router = useRouter()
     const [loading, setLoading] = useState(false)
+    const { can } = usePermissions()
+
+    if (!can('delivery_orders.create')) {
+        return null
+    }
 
     const handleCreate = async () => {
         if (!confirm('Buat Delivery Order untuk pesanan ini? Sistem akan otomatis memilih stok (FIFO).')) {
