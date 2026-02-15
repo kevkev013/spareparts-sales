@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import Link from 'next/link'
 import { ChevronLeft, Edit, Mail, Phone, MapPin, CreditCard } from 'lucide-react'
 import { Button } from '@/components/ui/button'
