@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getCities } from '@/services/customer.service'
 import { requireApiPermission } from '@/lib/auth-helpers'
+import { apiError } from '@/lib/api-error'
 
 // GET /api/customers/cities - Get all cities
 export async function GET() {
@@ -11,10 +12,6 @@ export async function GET() {
     const cities = await getCities()
     return NextResponse.json(cities)
   } catch (error: any) {
-    console.error('Error fetching cities:', error)
-    return NextResponse.json(
-      { error: error.message || 'Failed to fetch cities' },
-      { status: 500 }
-    )
+    return apiError(error, 'Gagal mengambil data kota')
   }
 }

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireApiPermission } from '@/lib/auth-helpers'
 import { getRoleById, updateRole, deleteRole } from '@/services/user.service'
+import { roleSchema } from '@/validations/role'
+import { apiError } from '@/lib/api-error'
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -13,7 +15,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     }
     return NextResponse.json(role)
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Failed to fetch role' }, { status: 500 })
+    return apiError(error, 'Gagal mengambil data role')
   }
 }
 
@@ -23,10 +25,11 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     if (error) return error
 
     const body = await request.json()
-    await updateRole(params.id, body)
+    const validatedData = roleSchema.parse(body)
+    await updateRole(params.id, validatedData)
     return NextResponse.json({ success: true })
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Failed to update role' }, { status: 500 })
+    return apiError(error, 'Gagal mengupdate role')
   }
 }
 
@@ -38,6 +41,6 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     await deleteRole(params.id)
     return NextResponse.json({ success: true })
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Failed to delete role' }, { status: 500 })
+    return apiError(error, 'Gagal menghapus role')
   }
 }

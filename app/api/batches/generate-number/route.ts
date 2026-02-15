@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { generateBatchNumber } from '@/services/batch.service'
 import { requireApiPermission } from '@/lib/auth-helpers'
+import { apiError } from '@/lib/api-error'
 
 // POST /api/batches/generate-number - Generate batch number for a date
 export async function POST(request: NextRequest) {
@@ -21,10 +22,6 @@ export async function POST(request: NextRequest) {
     const batchNumber = await generateBatchNumber(new Date(purchaseDate))
     return NextResponse.json({ batchNumber })
   } catch (error: any) {
-    console.error('Error generating batch number:', error)
-    return NextResponse.json(
-      { error: error.message || 'Failed to generate batch number' },
-      { status: 500 }
-    )
+    return apiError(error, 'Gagal generate nomor batch')
   }
 }

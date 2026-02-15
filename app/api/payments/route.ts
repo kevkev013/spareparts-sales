@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireApiPermission } from '@/lib/auth-helpers'
 import { getPayments, createPayment } from '@/services/payment.service'
-import type { PaymentFilter } from '@/services/payment.service'
+import { paymentSchema, paymentFilterSchema } from '@/validations/payment'
+import { apiError } from '@/lib/api-error'
 
 /**
  * GET /api/payments
@@ -13,26 +14,23 @@ export async function GET(request: NextRequest) {
 
         const { searchParams } = new URL(request.url)
 
-        const filter: PaymentFilter = {
+        const filter = paymentFilterSchema.parse({
             search: searchParams.get('search') || undefined,
             customerCode: searchParams.get('customerCode') || undefined,
-            dateFrom: searchParams.get('dateFrom')
-                ? new Date(searchParams.get('dateFrom')!)
-                : undefined,
-            dateTo: searchParams.get('dateTo') ? new Date(searchParams.get('dateTo')!) : undefined,
+            dateFrom: searchParams.get('dateFrom') || undefined,
+            dateTo: searchParams.get('dateTo') || undefined,
             page: searchParams.get('page') ? parseInt(searchParams.get('page')!) : 1,
             limit: searchParams.get('limit')
                 ? Math.min(parseInt(searchParams.get('limit')!), 100)
                 : 10,
             sortBy: searchParams.get('sortBy') || 'paymentDate',
-            sortOrder: (searchParams.get('sortOrder') as 'asc' | 'desc') || 'desc',
-        }
+            sortOrder: searchParams.get('sortOrder') || 'desc',
+        })
 
         const result = await getPayments(filter)
         return NextResponse.json(result)
     } catch (error: any) {
-        console.error('Error fetching payments:', error)
-        return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 })
+        return apiError(error, 'Gagal mengambil data pembayaran')
     }
 }
 
@@ -45,15 +43,12 @@ export async function POST(request: NextRequest) {
         if (error) return error
 
         const body = await request.json()
+        const validatedData = paymentSchema.parse(body)
 
-        // Parse date strings to Date objects
-        if (body.paymentDate) body.paymentDate = new Date(body.paymentDate)
-
-        const id = await createPayment(body)
+        const id = await createPayment(validatedData)
 
         return NextResponse.json({ id, message: 'Payment created successfully' })
     } catch (error: any) {
-        console.error('Error creating payment:', error)
-        return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 })
+        return apiError(error, 'Gagal membuat pembayaran')
     }
 }

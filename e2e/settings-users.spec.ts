@@ -12,7 +12,7 @@ test.describe('Settings - User Management', () => {
 
     const username = 'e2etest' + Date.now().toString().slice(-6)
     await page.locator('#username').fill(username)
-    await page.locator('#password').fill('test123456')
+    await page.locator('#password').fill('Test123456')
     await page.locator('#fullName').fill('E2E Test User')
 
     // Role is a native <select>
@@ -67,7 +67,7 @@ test.describe('Settings - User Management', () => {
     await page.goto('/settings/users/create')
     const username = 'deluser' + Date.now().toString().slice(-6)
     await page.locator('#username').fill(username)
-    await page.locator('#password').fill('test123456')
+    await page.locator('#password').fill('Test123456')
     await page.locator('#fullName').fill('Delete Me User')
 
     const roleSelect = page.locator('#roleId, select')

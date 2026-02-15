@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getBatchById, updateBatch, deleteBatch } from '@/services/batch.service'
 import { batchSchema } from '@/validations/batch'
 import { requireApiPermission } from '@/lib/auth-helpers'
+import { apiError } from '@/lib/api-error'
 
 // GET /api/batches/[id] - Get batch by ID
 export async function GET(
@@ -23,11 +24,7 @@ export async function GET(
 
     return NextResponse.json(batch)
   } catch (error: any) {
-    console.error('Error fetching batch:', error)
-    return NextResponse.json(
-      { error: error.message || 'Failed to fetch batch' },
-      { status: 500 }
-    )
+    return apiError(error, 'Gagal memproses data batch')
   }
 }
 
@@ -50,19 +47,7 @@ export async function PUT(
 
     return NextResponse.json(batch)
   } catch (error: any) {
-    console.error('Error updating batch:', error)
-
-    if (error.name === 'ZodError') {
-      return NextResponse.json(
-        { error: 'Validation error', details: error.errors },
-        { status: 400 }
-      )
-    }
-
-    return NextResponse.json(
-      { error: error.message || 'Failed to update batch' },
-      { status: 500 }
-    )
+    return apiError(error, 'Gagal memproses data batch')
   }
 }
 
@@ -79,10 +64,6 @@ export async function DELETE(
 
     return NextResponse.json({ message: 'Batch berhasil dihapus' })
   } catch (error: any) {
-    console.error('Error deleting batch:', error)
-    return NextResponse.json(
-      { error: error.message || 'Failed to delete batch' },
-      { status: 500 }
-    )
+    return apiError(error, 'Gagal memproses data batch')
   }
 }

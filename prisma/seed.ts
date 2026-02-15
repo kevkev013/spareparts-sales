@@ -26,7 +26,17 @@ async function main() {
   console.log('Creating admin user...')
   const adminRole = await prisma.role.findUnique({ where: { name: 'Admin' } })
   if (adminRole) {
-    const passwordHash = await bcrypt.hash('admin123', 12)
+    const adminPassword = process.env.ADMIN_INITIAL_PASSWORD || 'admin123'
+    if (process.env.NODE_ENV === 'production' && !process.env.ADMIN_INITIAL_PASSWORD) {
+      throw new Error(
+        'ADMIN_INITIAL_PASSWORD environment variable is required in production. ' +
+        'Set a strong password (min 8 chars, mixed case + numbers).'
+      )
+    }
+    if (!process.env.ADMIN_INITIAL_PASSWORD) {
+      console.warn('⚠️  Using default admin password. Set ADMIN_INITIAL_PASSWORD in production!')
+    }
+    const passwordHash = await bcrypt.hash(adminPassword, 12)
     await prisma.user.upsert({
       where: { username: 'admin' },
       update: {},

@@ -2,6 +2,14 @@ import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { Prisma } from '@prisma/client'
 
+function validatePassword(password: string) {
+  if (password.length < 8) throw new Error('Password minimal 8 karakter')
+  if (password.length > 72) throw new Error('Password maksimal 72 karakter')
+  if (!/[a-z]/.test(password)) throw new Error('Password harus mengandung huruf kecil')
+  if (!/[A-Z]/.test(password)) throw new Error('Password harus mengandung huruf besar')
+  if (!/[0-9]/.test(password)) throw new Error('Password harus mengandung angka')
+}
+
 export type UserFilter = {
   search?: string
   roleId?: string
@@ -106,6 +114,7 @@ export async function createUser(data: UserInput) {
   if (!data.password) {
     throw new Error('Password harus diisi')
   }
+  validatePassword(data.password)
 
   const existing = await prisma.user.findUnique({
     where: { username: data.username },
@@ -163,6 +172,7 @@ export async function updateUser(id: string, data: UserInput) {
 
   // Only update password if provided
   if (data.password) {
+    validatePassword(data.password)
     updateData.passwordHash = await bcrypt.hash(data.password, 12)
   }
 
@@ -198,6 +208,8 @@ export async function deleteUser(id: string) {
  * Reset password
  */
 export async function resetPassword(id: string, newPassword: string) {
+  validatePassword(newPassword)
+
   const user = await prisma.user.findUnique({
     where: { id },
   })
@@ -231,6 +243,7 @@ export async function changePassword(id: string, currentPassword: string, newPas
     throw new Error('Password lama salah')
   }
 
+  validatePassword(newPassword)
   const passwordHash = await bcrypt.hash(newPassword, 12)
 
   await prisma.user.update({

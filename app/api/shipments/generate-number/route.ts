@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireApiPermission } from '@/lib/auth-helpers'
+import { apiError } from '@/lib/api-error'
 import { generateSjNumber } from '@/services/shipment.service'
 
 export async function POST(request: NextRequest) {
@@ -14,7 +15,6 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({ sjNumber })
     } catch (error: any) {
-        console.error('Error generating SJ number:', error)
-        return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 })
+        return apiError(error, 'Gagal generate nomor surat jalan')
     }
 }

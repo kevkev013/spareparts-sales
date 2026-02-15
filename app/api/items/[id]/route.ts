@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getItemById, updateItem, deleteItem } from '@/services/item.service'
 import { itemSchema } from '@/validations/item'
 import { requireApiPermission } from '@/lib/auth-helpers'
+import { apiError } from '@/lib/api-error'
 
 // GET /api/items/[id] - Get item by ID
 export async function GET(
@@ -23,11 +24,7 @@ export async function GET(
 
     return NextResponse.json(item)
   } catch (error: any) {
-    console.error('Error fetching item:', error)
-    return NextResponse.json(
-      { error: error.message || 'Failed to fetch item' },
-      { status: 500 }
-    )
+    return apiError(error, 'Gagal memproses data item')
   }
 }
 
@@ -50,19 +47,7 @@ export async function PUT(
 
     return NextResponse.json(item)
   } catch (error: any) {
-    console.error('Error updating item:', error)
-
-    if (error.name === 'ZodError') {
-      return NextResponse.json(
-        { error: 'Validation error', details: error.errors },
-        { status: 400 }
-      )
-    }
-
-    return NextResponse.json(
-      { error: error.message || 'Failed to update item' },
-      { status: 500 }
-    )
+    return apiError(error, 'Gagal memproses data item')
   }
 }
 
@@ -79,10 +64,6 @@ export async function DELETE(
 
     return NextResponse.json({ message: 'Item berhasil dihapus' })
   } catch (error: any) {
-    console.error('Error deleting item:', error)
-    return NextResponse.json(
-      { error: error.message || 'Failed to delete item' },
-      { status: 500 }
-    )
+    return apiError(error, 'Gagal memproses data item')
   }
 }

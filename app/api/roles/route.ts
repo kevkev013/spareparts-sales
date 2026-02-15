@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireApiPermission } from '@/lib/auth-helpers'
 import { getRoles, createRole } from '@/services/user.service'
+import { roleSchema } from '@/validations/role'
+import { apiError } from '@/lib/api-error'
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,7 +12,7 @@ export async function GET(request: NextRequest) {
     const roles = await getRoles()
     return NextResponse.json(roles)
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Failed to fetch roles' }, { status: 500 })
+    return apiError(error, 'Gagal mengambil data role')
   }
 }
 
@@ -20,9 +22,10 @@ export async function POST(request: NextRequest) {
     if (error) return error
 
     const body = await request.json()
-    const id = await createRole(body)
+    const validatedData = roleSchema.parse(body)
+    const id = await createRole(validatedData)
     return NextResponse.json({ id }, { status: 201 })
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Failed to create role' }, { status: 500 })
+    return apiError(error, 'Gagal membuat role')
   }
 }

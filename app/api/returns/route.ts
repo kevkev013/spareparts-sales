@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireApiPermission } from '@/lib/auth-helpers'
 import { getReturns, createReturn } from '@/services/return.service'
-import type { ReturnFilter } from '@/services/return.service'
+import { returnSchema, returnFilterSchema } from '@/validations/return'
+import { apiError } from '@/lib/api-error'
 
 /**
  * GET /api/returns
@@ -13,27 +14,24 @@ export async function GET(request: NextRequest) {
 
         const { searchParams } = new URL(request.url)
 
-        const filter: ReturnFilter = {
+        const filter = returnFilterSchema.parse({
             search: searchParams.get('search') || undefined,
             customerCode: searchParams.get('customerCode') || undefined,
             status: searchParams.get('status') || undefined,
-            dateFrom: searchParams.get('dateFrom')
-                ? new Date(searchParams.get('dateFrom')!)
-                : undefined,
-            dateTo: searchParams.get('dateTo') ? new Date(searchParams.get('dateTo')!) : undefined,
+            dateFrom: searchParams.get('dateFrom') || undefined,
+            dateTo: searchParams.get('dateTo') || undefined,
             page: searchParams.get('page') ? parseInt(searchParams.get('page')!) : 1,
             limit: searchParams.get('limit')
                 ? Math.min(parseInt(searchParams.get('limit')!), 100)
                 : 10,
             sortBy: searchParams.get('sortBy') || 'returnDate',
-            sortOrder: (searchParams.get('sortOrder') as 'asc' | 'desc') || 'desc',
-        }
+            sortOrder: searchParams.get('sortOrder') || 'desc',
+        })
 
         const result = await getReturns(filter)
         return NextResponse.json(result)
     } catch (error: any) {
-        console.error('Error fetching returns:', error)
-        return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 })
+        return apiError(error, 'Gagal mengambil data retur')
     }
 }
 
@@ -46,15 +44,12 @@ export async function POST(request: NextRequest) {
         if (error) return error
 
         const body = await request.json()
+        const validatedData = returnSchema.parse(body)
 
-        // Parse date strings to Date objects
-        if (body.returnDate) body.returnDate = new Date(body.returnDate)
-
-        const id = await createReturn(body)
+        const id = await createReturn(validatedData)
 
         return NextResponse.json({ id, message: 'Return created successfully' })
     } catch (error: any) {
-        console.error('Error creating return:', error)
-        return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 })
+        return apiError(error, 'Gagal membuat retur')
     }
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getCustomerById, updateCustomer, deleteCustomer } from '@/services/customer.service'
 import { customerSchema } from '@/validations/customer'
 import { requireApiPermission } from '@/lib/auth-helpers'
+import { apiError } from '@/lib/api-error'
 
 // GET /api/customers/[id] - Get customer by ID
 export async function GET(
@@ -23,11 +24,7 @@ export async function GET(
 
     return NextResponse.json(customer)
   } catch (error: any) {
-    console.error('Error fetching customer:', error)
-    return NextResponse.json(
-      { error: error.message || 'Failed to fetch customer' },
-      { status: 500 }
-    )
+    return apiError(error, 'Gagal memproses data customer')
   }
 }
 
@@ -50,19 +47,7 @@ export async function PUT(
 
     return NextResponse.json(customer)
   } catch (error: any) {
-    console.error('Error updating customer:', error)
-
-    if (error.name === 'ZodError') {
-      return NextResponse.json(
-        { error: 'Validation error', details: error.errors },
-        { status: 400 }
-      )
-    }
-
-    return NextResponse.json(
-      { error: error.message || 'Failed to update customer' },
-      { status: 500 }
-    )
+    return apiError(error, 'Gagal memproses data customer')
   }
 }
 
@@ -79,10 +64,6 @@ export async function DELETE(
 
     return NextResponse.json({ message: 'Customer berhasil dihapus' })
   } catch (error: any) {
-    console.error('Error deleting customer:', error)
-    return NextResponse.json(
-      { error: error.message || 'Failed to delete customer' },
-      { status: 500 }
-    )
+    return apiError(error, 'Gagal memproses data customer')
   }
 }

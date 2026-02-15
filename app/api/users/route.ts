@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireApiPermission } from '@/lib/auth-helpers'
 import { getUsers, createUser } from '@/services/user.service'
+import { createUserSchema } from '@/validations/user'
+import { apiError } from '@/lib/api-error'
 
 export async function GET(request: NextRequest) {
   try {
@@ -18,13 +20,13 @@ export async function GET(request: NextRequest) {
             ? false
             : undefined,
       page: parseInt(searchParams.get('page') || '1'),
-      limit: parseInt(searchParams.get('limit') || '10'),
+      limit: Math.min(parseInt(searchParams.get('limit') || '10'), 100),
     }
 
     const result = await getUsers(filter)
     return NextResponse.json(result)
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Failed to fetch users' }, { status: 500 })
+    return apiError(error, 'Gagal mengambil data user')
   }
 }
 
@@ -34,9 +36,10 @@ export async function POST(request: NextRequest) {
     if (error) return error
 
     const body = await request.json()
-    const id = await createUser(body)
+    const validatedData = createUserSchema.parse(body)
+    const id = await createUser(validatedData)
     return NextResponse.json({ id }, { status: 201 })
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Failed to create user' }, { status: 500 })
+    return apiError(error, 'Gagal membuat user')
   }
 }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireApiPermission } from '@/lib/auth-helpers'
+import { apiError } from '@/lib/api-error'
 import { markAsDelivered } from '@/services/shipment.service'
 
 export async function POST(
@@ -13,7 +14,6 @@ export async function POST(
         await markAsDelivered(params.id)
         return NextResponse.json({ message: 'Shipment marked as delivered' })
     } catch (error: any) {
-        console.error('Error marking shipment as delivered:', error)
-        return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 })
+        return apiError(error, 'Gagal menandai pengiriman selesai')
     }
 }

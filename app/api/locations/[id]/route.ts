@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getLocationById, updateLocation, deleteLocation } from '@/services/location.service'
 import { locationSchema } from '@/validations/location'
 import { requireApiPermission } from '@/lib/auth-helpers'
+import { apiError } from '@/lib/api-error'
 
 // GET /api/locations/[id] - Get location by ID
 export async function GET(
@@ -23,11 +24,7 @@ export async function GET(
 
     return NextResponse.json(location)
   } catch (error: any) {
-    console.error('Error fetching location:', error)
-    return NextResponse.json(
-      { error: error.message || 'Failed to fetch location' },
-      { status: 500 }
-    )
+    return apiError(error, 'Gagal memproses data lokasi')
   }
 }
 
@@ -50,19 +47,7 @@ export async function PUT(
 
     return NextResponse.json(location)
   } catch (error: any) {
-    console.error('Error updating location:', error)
-
-    if (error.name === 'ZodError') {
-      return NextResponse.json(
-        { error: 'Validation error', details: error.errors },
-        { status: 400 }
-      )
-    }
-
-    return NextResponse.json(
-      { error: error.message || 'Failed to update location' },
-      { status: 500 }
-    )
+    return apiError(error, 'Gagal memproses data lokasi')
   }
 }
 
@@ -79,10 +64,6 @@ export async function DELETE(
 
     return NextResponse.json({ message: 'Lokasi berhasil dihapus' })
   } catch (error: any) {
-    console.error('Error deleting location:', error)
-    return NextResponse.json(
-      { error: error.message || 'Failed to delete location' },
-      { status: 500 }
-    )
+    return apiError(error, 'Gagal memproses data lokasi')
   }
 }

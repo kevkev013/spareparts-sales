@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireApiPermission } from '@/lib/auth-helpers'
+import { apiError } from '@/lib/api-error'
 import { getSalesOrders, createSalesOrder } from '@/services/sales-order.service'
 import { salesOrderSchema } from '@/validations/sales-order'
 import type { SalesOrderFilter } from '@/types/sales-order'
@@ -27,15 +28,16 @@ export async function GET(request: NextRequest) {
       limit: searchParams.get('limit')
         ? Math.min(parseInt(searchParams.get('limit')!), 100)
         : 10,
-      sortBy: (searchParams.get('sortBy') as any) || 'soDate',
-      sortOrder: (searchParams.get('sortOrder') as 'asc' | 'desc') || 'desc',
+      sortBy: (['soDate', 'soNumber', 'customerCode', 'grandTotal', 'status', 'createdAt'].includes(searchParams.get('sortBy') || '')
+        ? searchParams.get('sortBy')
+        : 'soDate') as SalesOrderFilter['sortBy'],
+      sortOrder: (searchParams.get('sortOrder') === 'asc' ? 'asc' : 'desc') as 'asc' | 'desc',
     }
 
     const result = await getSalesOrders(filter)
     return NextResponse.json(result)
   } catch (error: any) {
-    console.error('Error fetching sales orders:', error)
-    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 })
+    return apiError(error, 'Gagal memproses data sales order')
   }
 }
 
@@ -58,15 +60,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ id, message: 'Sales order created successfully' })
   } catch (error: any) {
-    console.error('Error creating sales order:', error)
-
-    if (error.name === 'ZodError') {
-      return NextResponse.json(
-        { error: 'Validation error', details: error.errors },
-        { status: 400 }
-      )
-    }
-
-    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 })
+    return apiError(error, 'Gagal memproses data sales order')
   }
 }

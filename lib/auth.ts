@@ -2,6 +2,7 @@ import { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
+import { loginLimiter } from '@/lib/rate-limit'
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -12,6 +13,12 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
+        const ip = 'login:' + (credentials?.username || 'unknown')
+        const { success } = loginLimiter(ip)
+        if (!success) {
+          throw new Error('Terlalu banyak percobaan login. Coba lagi dalam 15 menit.')
+        }
+
         if (!credentials?.username || !credentials?.password) {
           throw new Error('Username dan password harus diisi')
         }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getLocations, createLocation } from '@/services/location.service'
 import { locationSchema, locationFilterSchema } from '@/validations/location'
 import { requireApiPermission } from '@/lib/auth-helpers'
+import { apiError } from '@/lib/api-error'
 
 // GET /api/locations - Get all locations with filters
 export async function GET(request: NextRequest) {
@@ -31,11 +32,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(result)
   } catch (error: any) {
-    console.error('Error fetching locations:', error)
-    return NextResponse.json(
-      { error: error.message || 'Failed to fetch locations' },
-      { status: 500 }
-    )
+    return apiError(error, 'Gagal memproses data lokasi')
   }
 }
 
@@ -55,18 +52,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(location, { status: 201 })
   } catch (error: any) {
-    console.error('Error creating location:', error)
-
-    if (error.name === 'ZodError') {
-      return NextResponse.json(
-        { error: 'Validation error', details: error.errors },
-        { status: 400 }
-      )
-    }
-
-    return NextResponse.json(
-      { error: error.message || 'Failed to create location' },
-      { status: 500 }
-    )
+    return apiError(error, 'Gagal memproses data lokasi')
   }
 }

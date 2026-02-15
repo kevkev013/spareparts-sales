@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { changePassword } from '@/services/user.service'
+import { changePasswordSchema } from '@/validations/user'
+import { passwordLimiter, rateLimitResponse } from '@/lib/rate-limit'
+import { apiError } from '@/lib/api-error'
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,20 +13,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const body = await request.json()
-    if (!body.currentPassword || !body.newPassword) {
-      return NextResponse.json(
-        { error: 'Password lama dan password baru harus diisi' },
-        { status: 400 }
-      )
-    }
+    // Rate limit by user ID
+    const { success } = passwordLimiter(`change-pw:${session.user.id}`)
+    if (!success) return rateLimitResponse()
 
-    await changePassword(session.user.id, body.currentPassword, body.newPassword)
+    const body = await request.json()
+    const validatedData = changePasswordSchema.parse(body)
+
+    await changePassword(session.user.id, validatedData.currentPassword, validatedData.newPassword)
     return NextResponse.json({ success: true })
   } catch (error: any) {
-    return NextResponse.json(
-      { error: error.message || 'Failed to change password' },
-      { status: 500 }
-    )
+    return apiError(error, 'Gagal mengubah password')
   }
 }

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getZones } from '@/services/location.service'
 import { requireApiPermission } from '@/lib/auth-helpers'
+import { apiError } from '@/lib/api-error'
 
 // GET /api/locations/zones - Get all zones
 export async function GET() {
@@ -11,10 +12,6 @@ export async function GET() {
     const zones = await getZones()
     return NextResponse.json(zones)
   } catch (error: any) {
-    console.error('Error fetching zones:', error)
-    return NextResponse.json(
-      { error: error.message || 'Failed to fetch zones' },
-      { status: 500 }
-    )
+    return apiError(error, 'Gagal mengambil data zone')
   }
 }

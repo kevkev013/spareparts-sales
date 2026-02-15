@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireApiPermission } from '@/lib/auth-helpers'
+import { apiError } from '@/lib/api-error'
 import { generateReturnNumber } from '@/services/return.service'
 
 export async function POST(request: NextRequest) {
@@ -14,7 +15,6 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({ returnNumber })
     } catch (error: any) {
-        console.error('Error generating return number:', error)
-        return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 })
+        return apiError(error, 'Gagal generate nomor retur')
     }
 }

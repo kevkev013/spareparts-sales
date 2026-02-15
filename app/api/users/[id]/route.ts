@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireApiPermission } from '@/lib/auth-helpers'
 import { getUserById, updateUser, deleteUser } from '@/services/user.service'
+import { updateUserSchema } from '@/validations/user'
+import { apiError } from '@/lib/api-error'
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -13,7 +15,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     }
     return NextResponse.json(user)
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Failed to fetch user' }, { status: 500 })
+    return apiError(error, 'Gagal mengambil data user')
   }
 }
 
@@ -23,10 +25,11 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     if (error) return error
 
     const body = await request.json()
-    await updateUser(params.id, body)
+    const validatedData = updateUserSchema.parse(body)
+    await updateUser(params.id, validatedData)
     return NextResponse.json({ success: true })
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Failed to update user' }, { status: 500 })
+    return apiError(error, 'Gagal mengupdate user')
   }
 }
 
@@ -38,6 +41,6 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     await deleteUser(params.id)
     return NextResponse.json({ success: true })
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Failed to delete user' }, { status: 500 })
+    return apiError(error, 'Gagal menghapus user')
   }
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getItems, createItem, generateItemCode } from '@/services/item.service'
 import { itemSchema, itemFilterSchema } from '@/validations/item'
 import { requireApiPermission } from '@/lib/auth-helpers'
+import { apiError } from '@/lib/api-error'
 
 // GET /api/items - Get all items with filters
 export async function GET(request: NextRequest) {
@@ -31,11 +32,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(result)
   } catch (error: any) {
-    console.error('Error fetching items:', error)
-    return NextResponse.json(
-      { error: error.message || 'Failed to fetch items' },
-      { status: 500 }
-    )
+    return apiError(error, 'Gagal memproses data item')
   }
 }
 
@@ -55,18 +52,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(item, { status: 201 })
   } catch (error: any) {
-    console.error('Error creating item:', error)
-
-    if (error.name === 'ZodError') {
-      return NextResponse.json(
-        { error: 'Validation error', details: error.errors },
-        { status: 400 }
-      )
-    }
-
-    return NextResponse.json(
-      { error: error.message || 'Failed to create item' },
-      { status: 500 }
-    )
+    return apiError(error, 'Gagal memproses data item')
   }
 }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireApiPermission } from '@/lib/auth-helpers'
+import { apiError } from '@/lib/api-error'
 import {
   getSalesQuotationById,
   updateSalesQuotation,
@@ -24,8 +25,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 
     return NextResponse.json(quotation)
   } catch (error: any) {
-    console.error('Error fetching sales quotation:', error)
-    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 })
+    return apiError(error, 'Gagal memproses data quotation')
   }
 }
 
@@ -48,16 +48,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
     return NextResponse.json({ message: 'Sales quotation updated successfully' })
   } catch (error: any) {
-    console.error('Error updating sales quotation:', error)
-
-    if (error.name === 'ZodError') {
-      return NextResponse.json(
-        { error: 'Validation error', details: error.errors },
-        { status: 400 }
-      )
-    }
-
-    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 })
+    return apiError(error, 'Gagal memproses data quotation')
   }
 }
 
@@ -74,7 +65,6 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
 
     return NextResponse.json({ message: 'Sales quotation deleted successfully' })
   } catch (error: any) {
-    console.error('Error deleting sales quotation:', error)
-    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 })
+    return apiError(error, 'Gagal memproses data quotation')
   }
 }

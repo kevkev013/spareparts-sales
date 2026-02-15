@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { generateItemCode } from '@/services/item.service'
 import { requireApiPermission } from '@/lib/auth-helpers'
+import { apiError } from '@/lib/api-error'
 
 // GET /api/items/generate-code - Generate next item code
 export async function GET() {
@@ -11,10 +12,6 @@ export async function GET() {
     const itemCode = await generateItemCode()
     return NextResponse.json({ itemCode })
   } catch (error: any) {
-    console.error('Error generating item code:', error)
-    return NextResponse.json(
-      { error: error.message || 'Failed to generate item code' },
-      { status: 500 }
-    )
+    return apiError(error, 'Gagal generate kode item')
   }
 }

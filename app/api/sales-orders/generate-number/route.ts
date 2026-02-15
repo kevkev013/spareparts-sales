@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireApiPermission } from '@/lib/auth-helpers'
+import { apiError } from '@/lib/api-error'
 import { generateSoNumber } from '@/services/sales-order.service'
 
 /**
@@ -23,7 +24,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ soNumber })
   } catch (error: any) {
-    console.error('Error generating SO number:', error)
-    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 })
+    return apiError(error, 'Gagal generate nomor sales order')
   }
 }

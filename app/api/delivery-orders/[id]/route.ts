@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireApiPermission } from '@/lib/auth-helpers'
+import { apiError } from '@/lib/api-error'
 import {
   getDeliveryOrderById,
   completePicking,
@@ -22,7 +23,6 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 
     return NextResponse.json(deliveryOrder)
   } catch (error: any) {
-    console.error('Error fetching delivery order:', error)
-    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 })
+    return apiError(error, 'Gagal memproses delivery order')
   }
 }

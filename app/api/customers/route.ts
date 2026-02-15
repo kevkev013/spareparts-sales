@@ -3,6 +3,7 @@ import { getCustomers, createCustomer } from '@/services/customer.service'
 import { customerSchema, customerFilterSchema } from '@/validations/customer'
 import { CustomerType } from '@prisma/client'
 import { requireApiPermission } from '@/lib/auth-helpers'
+import { apiError } from '@/lib/api-error'
 
 // GET /api/customers - Get all customers with filters
 export async function GET(request: NextRequest) {
@@ -33,11 +34,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(result)
   } catch (error: any) {
-    console.error('Error fetching customers:', error)
-    return NextResponse.json(
-      { error: error.message || 'Failed to fetch customers' },
-      { status: 500 }
-    )
+    return apiError(error, 'Gagal memproses data customer')
   }
 }
 
@@ -57,18 +54,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(customer, { status: 201 })
   } catch (error: any) {
-    console.error('Error creating customer:', error)
-
-    if (error.name === 'ZodError') {
-      return NextResponse.json(
-        { error: 'Validation error', details: error.errors },
-        { status: 400 }
-      )
-    }
-
-    return NextResponse.json(
-      { error: error.message || 'Failed to create customer' },
-      { status: 500 }
-    )
+    return apiError(error, 'Gagal memproses data customer')
   }
 }

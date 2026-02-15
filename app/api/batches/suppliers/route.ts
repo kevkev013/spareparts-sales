@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getSuppliers } from '@/services/batch.service'
 import { requireApiPermission } from '@/lib/auth-helpers'
+import { apiError } from '@/lib/api-error'
 
 // GET /api/batches/suppliers - Get all suppliers
 export async function GET() {
@@ -11,10 +12,6 @@ export async function GET() {
     const suppliers = await getSuppliers()
     return NextResponse.json(suppliers)
   } catch (error: any) {
-    console.error('Error fetching suppliers:', error)
-    return NextResponse.json(
-      { error: error.message || 'Failed to fetch suppliers' },
-      { status: 500 }
-    )
+    return apiError(error, 'Gagal mengambil data supplier')
   }
 }
