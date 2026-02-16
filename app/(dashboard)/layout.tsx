@@ -15,6 +15,7 @@ import {
   LogOut,
   Loader2,
   KeyRound,
+  Wrench,
 } from 'lucide-react'
 
 type NavChild = {
@@ -63,6 +64,7 @@ const navigation: NavItem[] = [
     children: [
       { name: 'Users', href: '/settings/users', permission: 'users.view' },
       { name: 'Roles', href: '/settings/roles', permission: 'roles.view' },
+      { name: 'Maintenance', href: '/settings/maintenance', permission: 'users.delete' },
     ],
   },
 ]
